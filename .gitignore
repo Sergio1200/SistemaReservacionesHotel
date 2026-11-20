@@ -1,0 +1,39 @@
+# Java y Maven
+/target/
+*.class
+*.log
+
+# Archivos temporales y copias del editor
+/tmp/
+/temp/
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Archivos privados de NetBeans
+/nbproject/private/
+/nbactions-*.xml
+/profiles.xml
+
+# Configuración local
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+application-local.yaml
+
+# Credenciales y claves locales
+credentials.*
+secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Archivos del sistema
+Thumbs.db
+.DS_Store

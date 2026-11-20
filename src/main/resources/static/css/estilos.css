@@ -1,0 +1,45 @@
+body {
+    background-color: #f5f7f4;
+    color: #172e28;
+}
+
+.site-header {
+    background-color: #fff;
+}
+
+.menu-item {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+}
+
+.menu-item[aria-current="page"] {
+    border-radius: 0.5rem;
+    background-color: #e4efe8;
+    color: #164b3a;
+    text-decoration: none;
+}
+
+.menu-item[aria-current="page"]:hover {
+    text-decoration: underline;
+}
+
+.menu-item small {
+    display: block;
+    color: #49635b;
+    font-weight: 400;
+}
+
+.welcome-panel {
+    background: linear-gradient(125deg, #113b30, #235646);
+    color: #fff;
+}
+
+.welcome-panel h1 {
+    max-width: 24ch;
+}
+
+.welcome-panel p {
+    max-width: 56ch;
+    color: #e3f0e8;
+}
