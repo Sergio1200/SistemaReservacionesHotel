@@ -107,7 +107,7 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 ### Reglas de datos
 
 - La fecha de salida debe ser posterior a la entrada. El intervalo de ocupación es `[entrada, salida)`, así que una salida y otra entrada pueden coincidir el mismo día.
-- La lógica futura de disponibilidad consultará las reservaciones activas del intervalo. Se comprobarán solapamientos al crear o cambiar una reservación y se protegerá esa comprobación frente a solicitudes concurrentes. El estado operativo representa si la habitación está disponible u ocupada en ese momento.
+- La consulta pública comprueba las reservaciones activas del intervalo. Al implementar el alta y los cambios de reservación, se volverá a comprobar el solapamiento antes de guardar, con protección frente a solicitudes simultáneas.
 - La reservación conserva el precio por noche aplicado y el costo total. Los importes se representan con `BigDecimal` y se almacenan como `DECIMAL(12, 2)`. El esquema exige importes de reservación y habitación no negativos, pagos positivos y capacidad y número de huéspedes mayores que cero.
 - Los pagos serán simulados. Cada reintento conservará el registro anterior y solo los pagos con estado `PAGADO` reducirán el saldo cuando se implemente el cálculo.
 
@@ -132,12 +132,12 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. La suite comprueba el registro público y BCrypt, la sesión, la autorización y CSRF, las rutas del portal y la migración desde V1. `HuespedCrudMvcTests` cubre el directorio de recepción e `InventarioCrudMvcTests` cubre habitaciones, tipos y las restricciones relacionadas con reservaciones.
+`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. La suite comprueba el registro público y BCrypt, la sesión, la autorización y CSRF, las rutas del portal y la migración desde V1. `HuespedCrudMvcTests` cubre el directorio de recepción, `InventarioCrudMvcTests` cubre habitaciones y tipos, y `DisponibilidadMvcTests` cubre la consulta pública, las fechas, los estados, la capacidad y el costo estimado.
 
 Para repetir las pruebas de habitaciones, huéspedes, seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
 ## Registro y sesión
@@ -218,11 +218,23 @@ Solo el rol `ADMINISTRADOR` tiene acceso a ambos módulos. Las operaciones de es
 
 ### Estado operativo y disponibilidad
 
-El estado persistido es `DISPONIBLE` u `OCUPADA`, conforme al UML corregido. En el inventario se elige el estado inicial al registrar la habitación. Durante la edición se muestra el estado actual para consulta. Los flujos futuros de check-in y check-out gestionarán las transiciones. «Reservada» se determinará para el intervalo solicitado y se tendrá en cuenta al buscar disponibilidad por fechas en la etapa 7.
+El estado persistido es `DISPONIBLE` u `OCUPADA`, conforme al UML corregido. En el inventario se elige el estado inicial al registrar la habitación. Durante la edición se muestra el estado actual para consulta. Los flujos futuros de check-in y check-out gestionarán las transiciones. La condición «Reservada» se deduce para el intervalo consultado.
 
 ### Probar en Apache NetBeans
 
 Con Java 21 y las variables de una base MySQL de desarrollo configuradas, ejecuta `clean verify` desde **Run Maven > Other Goals…**. Para probar en el navegador, ejecuta `spring-boot:run -Dspring-boot.run.profiles=demo` con las variables del perfil de demostración. Inicia sesión como administrador, abre **Tipos de habitación** y registra un tipo que aún falte. En **Habitaciones**, crea un registro de prueba, recarga, filtra por su número o tipo, edítalo y confirma su eliminación. Puedes probar la protección de un tipo intentando eliminarlo mientras conserva una habitación asociada.
+
+## Consulta pública de disponibilidad
+
+Abre **Disponibilidad**, elige las fechas de entrada y salida, indica cuántos huéspedes se alojarán y pulsa **Buscar habitaciones**. `GET /disponibilidad` muestra el formulario y `GET /disponibilidad?entrada=AAAA-MM-DD&salida=AAAA-MM-DD&huespedes=2` muestra los resultados. La entrada debe ser hoy o posterior según el servidor. La salida debe ser posterior a la entrada y la estancia puede durar de 1 a 365 noches. El número de huéspedes debe ser un entero positivo.
+
+La consulta JPA de `HabitacionRepository` carga cada habitación con su tipo, comprueba que su capacidad alcance y descarta habitaciones con reservas `PENDIENTE`, `CONFIRMADA` o `EN_CURSO` que se crucen con las fechas pedidas. `CANCELADA` y `FINALIZADA` conservan su historial y dejan libre el intervalo para la consulta.
+
+Una estancia incluye sus noches desde la entrada y excluye el día de salida. Hay conflicto cuando `entradaExistente < salidaSolicitada` y `salidaExistente > entradaSolicitada`. Por ejemplo, una estancia del 10 al 15 de diciembre y otra del 15 al 18 pueden usar la misma habitación. Si la segunda empieza el 14, ambas requieren la habitación esa noche.
+
+Si hay exactamente una estancia `EN_CURSO` que empezó a más tardar hoy y cuya salida es hoy o posterior, la habitación puede aparecer a partir de esa salida, incluso cuando su estado operativo es `OCUPADA`. Los solapamientos con otras reservas activas siguen bloqueándola. Una habitación ocupada sin estancia en curso queda fuera de la oferta. Una estancia vencida, futura o duplicada marcada como `EN_CURSO` también deja la habitación fuera hasta aclarar su estado.
+
+`DisponibilidadService` calcula las noches como diferencia entre las dos fechas y multiplica la tarifa vigente por ese número con `BigDecimal`. Tres noches a 850.75 MXN dan un estimado de 2,552.25 MXN. La consulta es de solo lectura y muestra únicamente datos de inventario y el estimado. La confirmación, el guardado de la tarifa y la comprobación concurrente del cupo quedan para la etapa 8.
 
 ## Vistas del portal
 
@@ -236,13 +248,13 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/huespedes` | Directorio de MySQL con búsqueda, alta, edición y eliminación controlada. |
 | `/habitaciones` | Inventario de MySQL con búsqueda, filtro, alta, edición y eliminación controlada. |
 | `/tipos-habitacion` | Catálogo de MySQL con alta, edición y eliminación controlada. |
-| `/disponibilidad` | Formulario de fechas y cantidad de huéspedes. |
+| `/disponibilidad` | Consulta pública por fechas y capacidad, con costo estimado en MXN. |
 | `/reservaciones/nueva` | Selección de huésped, habitación y fechas de estancia. |
 | `/reservaciones` | Tabla de reservaciones con huésped, fechas, habitación y estado. |
 | `/pagos` | Historial de ejemplo y formulario para un futuro pago simulado. |
 | `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-La etapa 7 queda pendiente para consultar disponibilidad por fechas y capacidad. También quedan pendientes los flujos de reservaciones, pagos, check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
+Quedan pendientes la creación de reservaciones con comprobación concurrente en la etapa 8, los cambios y cancelaciones, los pagos, el check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

@@ -6,6 +6,20 @@ El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del C
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
 
+## Capturas de la etapa 7
+
+La búsqueda se probó sin iniciar sesión, en Edge a 1440 y 390 píxeles y con una instancia aislada de MySQL 8.0.46. Las habitaciones y las reservaciones eran ficticias. Las capturas terminan antes del pie académico.
+
+| Consulta | Captura |
+| --- | --- |
+| Tres noches para dos huéspedes, con tarifas y costos estimados | [Resultados en escritorio](capturas/etapa-7/resultados.png) |
+| Tres noches para cuatro huéspedes | [Resultados en celular](capturas/etapa-7/resultados-390.png) |
+| La única habitación con el cupo solicitado tiene una reserva superpuesta | [Sin resultados](capturas/etapa-7/sin-resultados.png) |
+| El número de huéspedes supera la capacidad de todas las habitaciones | [Capacidad insuficiente](capturas/etapa-7/capacidad-insuficiente.png) |
+| La salida es anterior a la entrada | [Error de fechas](capturas/etapa-7/fechas-invalidas.png) |
+
+También se comprobó que una habitación con salida prevista aparece al buscar desde ese día y que una habitación ocupada sin salida fiable queda fuera de los resultados. Las consultas conservaron las reservaciones y sus importes.
+
 ## Capturas de la etapa 6
 
 Las capturas se tomaron en Edge con una sesión de administración, en una instancia aislada de MySQL 8.0.46. El catálogo empezó vacío. Se registraron tipos y habitaciones ficticias desde el portal y se comprobó que los cambios seguían visibles al recargar. Para verificar el bloqueo se agregó una reservación cancelada de prueba en esa base temporal. El encuadre termina antes del pie académico.

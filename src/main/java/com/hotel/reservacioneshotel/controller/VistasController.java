@@ -30,11 +30,6 @@ public class VistasController {
         return "acerca-de";
     }
 
-    @GetMapping("/disponibilidad")
-    public String disponibilidad() {
-        return "disponibilidad";
-    }
-
     @GetMapping("/reservaciones/nueva")
     public String nuevaReservacion() {
         return "nueva-reservacion";

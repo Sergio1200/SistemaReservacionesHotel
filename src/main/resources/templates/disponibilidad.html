@@ -6,29 +6,56 @@
         <header th:replace="~{fragmentos/componentes :: encabezado('Consultar disponibilidad', 'Indica las fechas de entrada y salida y el número de huéspedes.')}"></header>
         <section class="surface form-surface" aria-labelledby="criterios-disponibilidad">
             <h2 id="criterios-disponibilidad">Datos de la estancia</h2>
-            <form data-prototipo method="post" autocomplete="off" class="form-stack">
+            <form class="form-stack" method="get" th:action="@{/disponibilidad}" th:object="${disponibilidadForm}">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label" for="disponible-entrada">Fecha de entrada</label>
-                        <input class="form-control" id="disponible-entrada" type="date">
+                        <label class="form-label" for="entrada">Fecha de entrada</label>
+                        <input class="form-control" type="date" th:field="*{entrada}" th:errorclass="is-invalid" required
+                               th:attr="min=${hoy},aria-invalid=${#fields.hasErrors('entrada')},
+                                        aria-describedby=${#fields.hasErrors('entrada') ? 'error-entrada' : null}">
+                        <p class="invalid-feedback mb-0" id="error-entrada" th:errors="*{entrada}"></p>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label" for="disponible-salida">Fecha de salida</label>
-                        <input class="form-control" id="disponible-salida" type="date">
+                        <label class="form-label" for="salida">Fecha de salida</label>
+                        <input class="form-control" type="date" th:field="*{salida}" th:errorclass="is-invalid" required
+                               th:attr="aria-invalid=${#fields.hasErrors('salida')},
+                                        aria-describedby=${#fields.hasErrors('salida') ? 'error-salida' : null}">
+                        <p class="invalid-feedback mb-0" id="error-salida" th:errors="*{salida}"></p>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label" for="disponible-huespedes">Número de huéspedes</label>
-                        <input class="form-control" id="disponible-huespedes" type="number" min="1" step="1" value="1">
+                        <label class="form-label" for="huespedes">Número de huéspedes</label>
+                        <input class="form-control" type="number" min="1" step="1" th:field="*{huespedes}"
+                               th:errorclass="is-invalid" required
+                               th:attr="aria-invalid=${#fields.hasErrors('huespedes')},
+                                        aria-describedby=${#fields.hasErrors('huespedes') ? 'error-huespedes' : null}">
+                        <p class="invalid-feedback mb-0" id="error-huespedes" th:errors="*{huespedes}"></p>
                     </div>
                 </div>
-                <div th:replace="~{fragmentos/componentes :: accionDemo('Consultar disponibilidad')}"></div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Buscar habitaciones</button>
+                </div>
             </form>
         </section>
-        <section class="surface empty-surface" aria-labelledby="resultados-disponibilidad">
-            <span class="tile-icon tile-icon-calendario" aria-hidden="true"></span>
-            <div>
-                <h2 id="resultados-disponibilidad">Habitaciones disponibles</h2>
-                <p>Los resultados aparecerán aquí cuando se habilite la consulta.</p>
+        <section class="disponibilidad-resultados" th:if="${resultados != null}" aria-labelledby="resultados-disponibilidad">
+            <h2 id="resultados-disponibilidad">Habitaciones disponibles</h2>
+            <p class="surface form-surface mb-0" role="status" th:if="${#lists.isEmpty(resultados)}">
+                No hay habitaciones disponibles para esas fechas y ese número de huéspedes.
+            </p>
+            <div th:unless="${#lists.isEmpty(resultados)}">
+                <p class="disponibilidad-aviso">Importes en MXN. El costo es una estimación hasta que se confirme una reservación.</p>
+                <div class="module-grid">
+                    <article class="surface form-surface habitacion-disponible" th:each="habitacion : ${resultados}">
+                        <h3 th:text="|Habitación ${habitacion.numero}|"></h3>
+                        <dl>
+                            <dt>Tipo</dt><dd th:text="${habitacion.tipo}"></dd>
+                            <dt>Capacidad</dt><dd th:text="${habitacion.capacidad}"></dd>
+                            <dt>Precio por noche</dt><dd th:text="${#numbers.formatDecimal(habitacion.precioPorNoche, 1, 2)}"></dd>
+                            <dt>Noches</dt><dd th:text="${habitacion.noches}"></dd>
+                            <dt class="disponibilidad-total">Costo estimado</dt>
+                            <dd class="disponibilidad-total" th:text="${#numbers.formatDecimal(habitacion.costoEstimado, 1, 2)}"></dd>
+                        </dl>
+                    </article>
+                </div>
             </div>
         </section>
     </main>

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.hotel.reservacioneshotel.controller.HabitacionController;
+import com.hotel.reservacioneshotel.controller.DisponibilidadController;
 import com.hotel.reservacioneshotel.controller.HuespedController;
 import com.hotel.reservacioneshotel.controller.TipoHabitacionController;
 import com.hotel.reservacioneshotel.controller.VistasController;
@@ -63,6 +64,7 @@ class VistasControllerTests {
             case "/huespedes" -> HuespedController.class;
             case "/habitaciones" -> HabitacionController.class;
             case "/tipos-habitacion" -> TipoHabitacionController.class;
+            case "/disponibilidad" -> DisponibilidadController.class;
             default -> VistasController.class;
         };
         mvc.perform(peticionVista(ruta))

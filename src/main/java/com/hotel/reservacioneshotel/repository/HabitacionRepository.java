@@ -1,9 +1,13 @@
 package com.hotel.reservacioneshotel.repository;
 
+import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.hotel.reservacioneshotel.domain.habitaciones.EstadoHabitacion;
 import com.hotel.reservacioneshotel.domain.habitaciones.Habitacion;
+import com.hotel.reservacioneshotel.domain.reservaciones.EstadoReservacion;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +24,33 @@ public interface HabitacionRepository extends JpaRepository<Habitacion, Long> {
             order by h.numero
             """)
     List<Habitacion> buscar(@Param("numero") String numero, @Param("idTipo") Long idTipo);
+
+    @Query("""
+            select h from Habitacion h join fetch h.tipoHabitacion t
+            where t.capacidad >= :huespedes
+              and not exists (
+                  select 1 from Reservacion r where r.habitacion = h and r.estado in :estadosQueBloquean
+                      and r.fechaEntrada < :salida and r.fechaSalida > :entrada
+              )
+              and (
+                  (h.estadoOperativo = :disponible and not exists (
+                      select 1 from Reservacion r where r.habitacion = h and r.estado = :enCurso
+                  ))
+                  or (
+                      exists (
+                          select 1 from Reservacion r where r.habitacion = h and r.estado = :enCurso
+                              and r.fechaEntrada <= :hoy and r.fechaSalida >= :hoy and r.fechaSalida <= :entrada
+                      )
+                      and (select count(r) from Reservacion r where r.habitacion = h and r.estado = :enCurso) = 1
+                  )
+              )
+            order by h.numero
+            """)
+    List<Habitacion> buscarDisponibles(@Param("entrada") LocalDate entrada, @Param("salida") LocalDate salida,
+                                     @Param("huespedes") int huespedes, @Param("hoy") LocalDate hoy,
+                                     @Param("disponible") EstadoHabitacion disponible,
+                                     @Param("enCurso") EstadoReservacion enCurso,
+                                     @Param("estadosQueBloquean") Collection<EstadoReservacion> estadosQueBloquean);
 
     @EntityGraph(attributePaths = "tipoHabitacion")
     Optional<Habitacion> findOneByIdHabitacion(Long id);

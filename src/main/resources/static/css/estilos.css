@@ -528,6 +528,20 @@ a:focus-visible, button:focus-visible, [tabindex="0"]:focus-visible {
 .data-table .texto-inventario, .detalle-inventario { white-space: normal; overflow-wrap: anywhere; }
 .acciones-inventario { display: flex; gap: 0.65rem; }
 
+.disponibilidad-resultados { margin-top: 1.5rem; }
+.disponibilidad-resultados > h2 { margin-bottom: 0.7rem; }
+.disponibilidad-aviso { margin: 0 0 1rem; color: var(--hotel-muted); }
+.habitacion-disponible h3 { margin: 0 0 0.8rem; overflow-wrap: anywhere; }
+.habitacion-disponible dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.35rem 0.75rem;
+    margin: 0;
+}
+.habitacion-disponible dt { font-weight: 600; }
+.habitacion-disponible dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.disponibilidad-total { padding-top: 0.55rem; border-top: 1px solid var(--hotel-border); font-weight: 700; }
+
 .status { display: inline-block; padding: 0.22rem 0.52rem; border-radius: 0.38rem; font-size: 0.875rem; font-weight: 650; }
 .status-green { background: #e5f5ed; color: #1e6347; }
 .status-blue { background: #e8f0fc; color: #275386; }
