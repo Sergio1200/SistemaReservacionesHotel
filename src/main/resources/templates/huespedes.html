@@ -3,39 +3,61 @@
       th:replace="~{fragmentos/estructura :: pagina('Gestión de huéspedes', '/huespedes', ~{::main})}">
 <body>
     <main id="contenido" class="app-content app-main" tabindex="-1">
-        <header th:replace="~{fragmentos/componentes :: encabezado('Gestión de huéspedes', 'Consulta el directorio y el formulario de registro de huéspedes.')}"></header>
-        <div class="work-grid">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Gestión de huéspedes', 'Consulta y actualiza las fichas de huéspedes desde recepción.')}"></header>
+        <p class="alert alert-success" role="status" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+        <div class="work-grid huespedes-grid">
             <section class="surface" aria-labelledby="directorio-huespedes">
                 <div class="surface-heading">
                     <h2 id="directorio-huespedes">Directorio</h2>
-                    <span class="sample-label">Registros de ejemplo</span>
                 </div>
-                <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de huéspedes de ejemplo">
-                    <table class="table data-table">
-                        <thead><tr><th scope="col">Huésped</th><th scope="col">Correo</th><th scope="col">Teléfono</th></tr></thead>
+                <form class="busqueda-huespedes" th:action="@{/huespedes}" method="get" role="search">
+                    <label class="form-label" for="buscar-huesped">Buscar por nombre, correo o ID</label>
+                    <div class="busqueda-huespedes-campos">
+                        <input class="form-control" id="buscar-huesped" type="search" name="q" th:value="${q}" maxlength="254">
+                        <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                        <a class="text-link" th:if="${!q.isEmpty()}" th:href="@{/huespedes}">Limpiar</a>
+                    </div>
+                </form>
+                <p class="table-note" th:if="${#lists.isEmpty(huespedes)}"
+                   th:text="${q.isEmpty() ? 'Aún no hay huéspedes registrados.' : 'No se encontraron huéspedes que coincidan con la búsqueda.'}"></p>
+                <div class="table-responsive" tabindex="0" role="region" aria-labelledby="directorio-huespedes"
+                     th:unless="${#lists.isEmpty(huespedes)}">
+                    <table class="table data-table tabla-huespedes">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Teléfono</th>
+                                <th scope="col">Correo</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            <tr><th scope="row">Huésped Alfa</th><td>alfa@example.test</td><td>Sin teléfono</td></tr>
-                            <tr><th scope="row">Huésped Beta</th><td>beta@example.test</td><td>Sin teléfono</td></tr>
+                            <tr th:each="huesped : ${huespedes}">
+                                <td th:text="${huesped.idHuesped}"></td>
+                                <th scope="row" th:text="${huesped.nombre}"></th>
+                                <td th:text="${huesped.telefono}"></td>
+                                <td th:text="${huesped.correo}"></td>
+                                <td>
+                                    <div class="acciones-huesped">
+                                        <a class="text-link" th:href="@{/huespedes/{id}/editar(id=${huesped.idHuesped})}"
+                                           th:aria-label="|Editar ficha de ${huesped.nombre}|">Editar</a>
+                                        <a class="text-link" th:href="@{/huespedes/{id}/eliminar(id=${huesped.idHuesped})}"
+                                           th:aria-label="|Revisar eliminación de ${huesped.nombre}|">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
             <section class="surface form-surface" aria-labelledby="registro-huesped">
                 <h2 id="registro-huesped">Registrar huésped</h2>
-                <form data-prototipo method="post" autocomplete="off" class="form-stack">
-                    <div>
-                        <label class="form-label" for="nombre-huesped">Nombre completo</label>
-                        <input class="form-control" id="nombre-huesped" type="text">
+                <form th:action="@{/huespedes}" method="post" class="form-stack" th:object="${formulario}">
+                    <th:block th:replace="~{fragmentos/huesped-formulario :: campos(false, null)}"></th:block>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" type="submit">Registrar huésped</button>
                     </div>
-                    <div>
-                        <label class="form-label" for="correo-huesped">Correo electrónico</label>
-                        <input class="form-control" id="correo-huesped" type="email">
-                    </div>
-                    <div>
-                        <label class="form-label" for="telefono-huesped">Teléfono</label>
-                        <input class="form-control" id="telefono-huesped" type="tel">
-                    </div>
-                    <div th:replace="~{fragmentos/componentes :: accionDemo('Registrar huésped')}"></div>
                 </form>
             </section>
         </div>

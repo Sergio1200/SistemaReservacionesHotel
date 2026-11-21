@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Eliminar huésped', '/huespedes', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-eliminar">
+            <header class="page-heading">
+                <h1 id="titulo-eliminar">Eliminar huésped</h1>
+                <p class="ficha-huesped" th:text="|${ficha.huesped.nombre} · Ficha n.º ${ficha.huesped.idHuesped}|"></p>
+            </header>
+            <p class="alert alert-warning" role="alert" th:if="${mensajeError != null or ficha.motivoParaConservar != null}"
+               th:text="${mensajeError ?: ficha.motivoParaConservar}"></p>
+            <form class="form-stack" th:if="${ficha.motivoParaConservar == null}" method="post"
+                  th:action="@{/huespedes/{id}/eliminar(id=${ficha.huesped.idHuesped})}">
+                <p class="mb-0">Confirma si deseas eliminar esta ficha de forma permanente.</p>
+                <div class="form-actions">
+                    <button class="btn btn-danger" type="submit">Confirmar eliminación</button>
+                    <a class="text-link" th:href="@{/huespedes}">Cancelar</a>
+                </div>
+            </form>
+            <a class="text-link" th:if="${ficha.motivoParaConservar != null}" th:href="@{/huespedes}">Volver al directorio</a>
+        </section>
+    </main>
+</body>
+</html>

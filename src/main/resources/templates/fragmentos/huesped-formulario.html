@@ -1,0 +1,25 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="campos(correoProtegido, correoActual)">
+    <div>
+        <label class="form-label" for="nombre">Nombre completo</label>
+        <input class="form-control" th:field="*{nombre}" th:errorclass="is-invalid" type="text"
+               maxlength="120" autocomplete="section-huesped name" required>
+        <p class="invalid-feedback" th:errors="*{nombre}"></p>
+    </div>
+    <div>
+        <label class="form-label" for="telefono">Teléfono</label>
+        <input class="form-control" th:field="*{telefono}" th:errorclass="is-invalid" type="tel"
+               maxlength="32" autocomplete="section-huesped tel" required>
+        <p class="invalid-feedback" th:errors="*{telefono}"></p>
+    </div>
+    <div>
+        <label class="form-label" for="correo">Correo electrónico</label>
+        <input th:unless="${correoProtegido}" class="form-control" th:field="*{correo}" th:errorclass="is-invalid"
+               type="email" maxlength="254" autocomplete="section-huesped email" required>
+        <input th:if="${correoProtegido}" class="form-control" th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'"
+               type="email" id="correo" name="correo" th:value="${correoActual}" aria-describedby="correo-ayuda" readonly>
+        <p class="invalid-feedback" th:errors="*{correo}"></p>
+        <p th:if="${correoProtegido}" class="form-text mb-0" id="correo-ayuda">
+            Este correo pertenece a una cuenta activa y requiere verificación para cambiarse.
+        </p>
+    </div>
+</th:block>

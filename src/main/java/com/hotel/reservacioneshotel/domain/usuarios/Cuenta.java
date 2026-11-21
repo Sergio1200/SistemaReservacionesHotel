@@ -80,4 +80,11 @@ public class Cuenta {
     public boolean isActiva() {
         return empleado == null ? contrasenaHash != null : empleado.isActivo();
     }
+
+    public void actualizarCorreoDelHuesped() {
+        if (huesped == null || isActiva()) {
+            throw new IllegalStateException("Solo se puede actualizar el correo de una cuenta de huésped inactiva.");
+        }
+        correo = normalizarCorreo(huesped.getCorreo());
+    }
 }

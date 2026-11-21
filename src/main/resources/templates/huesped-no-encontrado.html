@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Huésped no encontrado', '/huespedes', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-no-encontrado">
+            <header class="page-heading">
+                <h1 id="titulo-no-encontrado">Huésped no encontrado</h1>
+                <p>La ficha solicitada ya no está disponible en el directorio.</p>
+            </header>
+            <a class="text-link" th:href="@{/huespedes}">Volver al directorio</a>
+        </section>
+    </main>
+</body>
+</html>

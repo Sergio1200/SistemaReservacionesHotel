@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Editar huésped', '/huespedes', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-editar">
+            <header class="page-heading">
+                <h1 id="titulo-editar">Editar huésped</h1>
+                <p th:text="|Ficha n.º ${ficha.huesped.idHuesped}|"></p>
+            </header>
+            <form class="form-stack" th:object="${formulario}" method="post"
+                  th:action="@{/huespedes/{id}/editar(id=${ficha.huesped.idHuesped})}">
+                <th:block th:replace="~{fragmentos/huesped-formulario :: campos(${ficha.correoProtegido}, ${ficha.huesped.correo})}"></th:block>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                    <a class="text-link" th:href="@{/huespedes}">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

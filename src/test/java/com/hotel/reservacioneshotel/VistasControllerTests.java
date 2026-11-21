@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.hotel.reservacioneshotel.controller.HuespedController;
 import com.hotel.reservacioneshotel.controller.VistasController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,10 +56,10 @@ class VistasControllerTests {
             "/pagos, pagos, Gestión de pagos",
             "/check-in-check-out, check-in-check-out, Check-in y check-out"
     })
-    void renderizaLosPrototipos(String ruta, String plantilla, String encabezado) throws Exception {
+    void renderizaLasVistasDelPortal(String ruta, String plantilla, String encabezado) throws Exception {
         mvc.perform(peticionVista(ruta))
                 .andExpect(status().isOk())
-                .andExpect(handler().handlerType(VistasController.class))
+                .andExpect(handler().handlerType(ruta.equals("/huespedes") ? HuespedController.class : VistasController.class))
                 .andExpect(view().name(plantilla))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(content().string(containsString(">" + encabezado + "</h1>")));
@@ -129,7 +130,7 @@ class VistasControllerTests {
 
     @Test
     void losFormulariosNoAceptanEnvios() throws Exception {
-        for (String ruta : List.of("/huespedes", "/habitaciones", "/disponibilidad",
+        for (String ruta : List.of("/habitaciones", "/disponibilidad",
                 "/reservaciones/nueva", "/pagos")) {
             mvc.perform(conAcceso(post(ruta), ruta).with(csrf())).andExpect(status().isMethodNotAllowed());
         }

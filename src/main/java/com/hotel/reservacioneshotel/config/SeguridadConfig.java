@@ -45,7 +45,8 @@ public class SeguridadConfig {
                         .requestMatchers("/panel").hasAnyRole(HUESPED.name(), RECEPCIONISTA.name(), ADMINISTRADOR.name())
                         .requestMatchers("/reservaciones", "/reservaciones/nueva")
                                 .hasAnyRole(HUESPED.name(), RECEPCIONISTA.name())
-                        .requestMatchers("/huespedes", "/pagos", "/check-in-check-out").hasRole(RECEPCIONISTA.name())
+                        .requestMatchers("/huespedes", "/huespedes/**", "/pagos", "/check-in-check-out")
+                                .hasRole(RECEPCIONISTA.name())
                         .requestMatchers("/habitaciones", "/tipos-habitacion").hasRole(ADMINISTRADOR.name())
                         .anyRequest().denyAll())
                 .formLogin(formulario -> formulario

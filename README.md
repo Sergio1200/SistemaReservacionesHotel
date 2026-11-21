@@ -132,12 +132,12 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. Las pruebas comprueban el registro y el hash BCrypt, el inicio y cierre de sesión, la autorización y CSRF, las rutas anteriores y la migración desde V1.
+`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. La suite comprueba el registro público y BCrypt, la sesión, la autorización y CSRF, las rutas del portal y la migración desde V1. `HuespedCrudMvcTests` cubre el directorio, la búsqueda, el alta, la edición, la eliminación y sus restricciones.
 
-Para repetir las pruebas de seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
+Para repetir las pruebas de huéspedes, seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
 ## Registro y sesión
@@ -175,19 +175,38 @@ En NetBeans puedes ejecutar el mismo objetivo Maven con `-Dspring-boot.run.profi
 | Público | `/`, `/login`, `/registro`, `/acerca-de`, `/disponibilidad` y recursos bajo `/css/`, `/js/` e `/img/`. |
 | Cualquier rol autenticado | `/panel` y `POST /logout`. |
 | Huésped | `/reservaciones` y `/reservaciones/nueva`. |
-| Recepcionista | `/huespedes`, `/reservaciones`, `/reservaciones/nueva`, `/pagos` y `/check-in-check-out`. |
+| Recepcionista | `/huespedes` y sus subrutas, `/reservaciones`, `/reservaciones/nueva`, `/pagos` y `/check-in-check-out`. |
 | Administrador | `/habitaciones` y `/tipos-habitacion`. |
+
+## Gestión de huéspedes
+
+Inicia la aplicación con una base MySQL de desarrollo y una cuenta de recepción. Puedes usar el perfil `demo` descrito arriba. En el menú principal, abre **Huéspedes**, registra una ficha de prueba, recarga la página para comprobar que sigue disponible y búscala por nombre, correo o ID. Luego usa **Editar** para modificarla o **Eliminar** para revisar si procede su eliminación.
+
+| Método y ruta | Operación |
+| --- | --- |
+| `GET /huespedes` | Muestra las fichas con ID, nombre, teléfono y correo. El parámetro opcional `q` busca coincidencias parciales en nombre o correo y coincidencias exactas de ID. |
+| `POST /huespedes` | Registra una ficha desde recepción. |
+| `GET /huespedes/{id}/editar` | Muestra el formulario con los datos de la ficha. |
+| `POST /huespedes/{id}/editar` | Guarda los cambios permitidos. |
+| `GET /huespedes/{id}/eliminar` | Muestra la confirmación o el motivo por el que debe conservarse la ficha. |
+| `POST /huespedes/{id}/eliminar` | Elimina la ficha cuando se cumplen las condiciones. |
+
+`HuespedController` recibe las solicitudes MVC, `HuespedService` aplica las reglas en transacciones y `HuespedRepository` consulta las fichas con JPA. `CuentaRepository` y `ReservacionRepository` comprueban las relaciones. Los formularios reutilizan `RegistroHuespedForm`, que exige nombre, correo y teléfono, valida el formato del correo y limita las longitudes a 120, 254 y 32 caracteres, respectivamente. Las operaciones POST requieren un token CSRF. Una ficha inexistente devuelve HTTP 404.
+
+El alta de recepción guarda un `Huesped` y reserva su correo normalizado en una `Cuenta` sin contraseña, con el inicio de sesión deshabilitado. Al editar, siempre se pueden actualizar el nombre y el teléfono. Si hay una cuenta activa, su correo queda protegido hasta que exista un flujo de verificación de titularidad. Para una ficha sin cuenta activa, el correo nuevo debe estar libre entre huéspedes y cuentas de los tres roles, y se guarda en ambas tablas en la misma transacción.
+
+Se exige confirmación para eliminar. Se conserva la ficha si existe cualquier reservación asociada, incluso cancelada, o si su cuenta está activa. En una baja permitida, se elimina explícitamente la reserva de correo inactiva y la ficha. Las claves foráneas protegen las reservaciones y el historial de pagos. Esta etapa usa las migraciones V1 y V2 existentes.
 
 ## Vistas del portal
 
-Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios de operación mantienen deshabilitado el envío.
+Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios de los prototipos mantienen deshabilitado el envío.
 
 | Ruta | Vista |
 | --- | --- |
 | `/login` | Inicio de sesión con correo electrónico y contraseña. |
 | `/registro` | Registro funcional de una cuenta de huésped. |
 | `/panel` | Panel principal con accesos a las vistas de operación y gestión. |
-| `/huespedes` | Directorio de huéspedes y formulario de registro. |
+| `/huespedes` | Directorio de MySQL con búsqueda, alta, edición y eliminación controlada. |
 | `/habitaciones` | Inventario y formulario con número, piso, tipo, precio y estado. |
 | `/tipos-habitacion` | Catálogo de las categorías Individual, Doble y Suite. |
 | `/disponibilidad` | Formulario de fechas y cantidad de huéspedes. |
@@ -197,6 +216,6 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-Quedan pendientes las operaciones CRUD, la disponibilidad en tiempo real y los flujos de reservaciones, pagos, check-in y check-out.
+Quedan pendientes el CRUD de habitaciones, la disponibilidad en tiempo real, los flujos de reservaciones, pagos, check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

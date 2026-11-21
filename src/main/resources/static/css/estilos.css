@@ -501,6 +501,19 @@ a:focus-visible, button:focus-visible, [tabindex="0"]:focus-visible {
 .data-table tbody tr:last-child > * { border-bottom: 0; }
 .table-note { margin: 0; padding: 0.85rem 1.25rem; border-top: 1px solid var(--hotel-border); }
 
+.huespedes-grid { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1220px) {
+    .huespedes-grid { grid-template-columns: minmax(0, 1fr) minmax(16rem, 29%); }
+}
+
+.busqueda-huespedes { padding: 0 1.25rem 1.15rem; }
+.busqueda-huespedes-campos { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.busqueda-huespedes-campos input { flex: 1 1 9rem; min-width: 0; }
+.tabla-huespedes { min-width: 36rem; }
+.tabla-huespedes :is(th,td):nth-child(2),
+.tabla-huespedes td:nth-child(4), .ficha-huesped { white-space: normal; overflow-wrap: anywhere; }
+.acciones-huesped { display: flex; gap: 0.75rem; }
+
 .status { display: inline-block; padding: 0.22rem 0.52rem; border-radius: 0.38rem; font-size: 0.875rem; font-weight: 650; }
 .status-green { background: #e5f5ed; color: #1e6347; }
 .status-blue { background: #e8f0fc; color: #275386; }

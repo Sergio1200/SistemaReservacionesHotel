@@ -1,10 +1,21 @@
 # Interfaz de Reservaciones Hotel
 
-El portal usa un menú lateral en computadora y un menú plegable en celular y tableta. Las vistas comparten la estructura mediante fragmentos de Thymeleaf. Las tablas anchas se desplazan dentro de su propia región y los botones de operación indican que estarán disponibles en una próxima etapa.
+El portal usa un menú lateral en computadora y un menú plegable en celular y tableta. Las vistas comparten la estructura mediante fragmentos de Thymeleaf. Las tablas anchas se desplazan dentro de su propia región. Los controles de las vistas de prototipo indican las operaciones previstas para próximas etapas.
 
 El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del Centro Universitario Atlacomulco. El pie compartido incorpora la autoría y el contexto académico.
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
+
+## Capturas de la etapa 5
+
+Las capturas corresponden a la aplicación ejecutada en Edge con la sesión de recepción y una instancia aislada de MySQL 8.0.46. Se crearon fichas de prueba desde el formulario con direcciones `example.test`. El encuadre termina antes del pie académico. Se comprobó la persistencia tras recargar, la búsqueda, la edición, el rechazo de correos duplicados y la eliminación confirmada.
+
+| Flujo | Captura |
+| --- | --- |
+| Directorio de huéspedes | [Escritorio, ancho de 1440 px](capturas/etapa-5/listado.png) · [Celular, ancho de 390 px](capturas/etapa-5/listado-390.png) |
+| Alta | [Registro exitoso](capturas/etapa-5/registro-exitoso.png) |
+| Edición | [Formulario de modificación](capturas/etapa-5/editar.png) |
+| Validación | [Correo duplicado](capturas/etapa-5/validacion.png) |
 
 ## Capturas de la etapa 4
 
