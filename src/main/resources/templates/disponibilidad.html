@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Consultar disponibilidad', '/disponibilidad', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Consultar disponibilidad', 'Indica las fechas de entrada y salida y el número de huéspedes.')}"></header>
+        <section class="surface form-surface" aria-labelledby="criterios-disponibilidad">
+            <h2 id="criterios-disponibilidad">Datos de la estancia</h2>
+            <form data-prototipo method="post" autocomplete="off" class="form-stack">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="disponible-entrada">Fecha de entrada</label>
+                        <input class="form-control" id="disponible-entrada" type="date">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="disponible-salida">Fecha de salida</label>
+                        <input class="form-control" id="disponible-salida" type="date">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="disponible-huespedes">Número de huéspedes</label>
+                        <input class="form-control" id="disponible-huespedes" type="number" min="1" step="1" value="1">
+                    </div>
+                </div>
+                <div th:replace="~{fragmentos/componentes :: accionDemo('Consultar disponibilidad')}"></div>
+            </form>
+        </section>
+        <section class="surface empty-surface" aria-labelledby="resultados-disponibilidad">
+            <span class="tile-icon tile-icon-calendario" aria-hidden="true"></span>
+            <div>
+                <h2 id="resultados-disponibilidad">Habitaciones disponibles</h2>
+                <p>Los resultados aparecerán aquí cuando se habilite la consulta.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

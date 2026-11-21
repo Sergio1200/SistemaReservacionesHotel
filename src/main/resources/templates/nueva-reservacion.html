@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Nueva reservación', '/reservaciones/nueva', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Nueva reservación', 'Formulario de ejemplo para asignar una habitación a un huésped.')}"></header>
+        <div class="work-grid">
+            <section class="surface form-surface" aria-labelledby="datos-reservacion">
+                <h2 id="datos-reservacion">Datos de la reservación</h2>
+                <form data-prototipo method="post" autocomplete="off" class="form-stack">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="reserva-huesped">Huésped</label>
+                            <select class="form-select" id="reserva-huesped">
+                                <option value="" selected disabled>Selecciona un huésped</option>
+                                <optgroup label="Huéspedes de ejemplo">
+                                    <option>Huésped Alfa</option><option>Huésped Beta</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="reserva-habitacion">Habitación</label>
+                            <select class="form-select" id="reserva-habitacion">
+                                <option value="" selected disabled>Selecciona una habitación</option>
+                                <optgroup label="Habitaciones de ejemplo">
+                                    <option>101 · Individual</option><option>202 · Doble</option><option>301 · Suite</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="reserva-entrada">Fecha de entrada</label>
+                            <input class="form-control" id="reserva-entrada" type="date">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="reserva-salida">Fecha de salida</label>
+                            <input class="form-control" id="reserva-salida" type="date">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="reserva-ocupacion">Número de huéspedes</label>
+                            <input class="form-control" id="reserva-ocupacion" type="number" min="1" step="1" value="1">
+                        </div>
+                    </div>
+                    <div th:replace="~{fragmentos/componentes :: accionDemo('Registrar reservación')}"></div>
+                </form>
+            </section>
+            <section class="surface form-surface related-surface" aria-labelledby="modulos-reservacion">
+                <h2 id="modulos-reservacion">Vistas relacionadas</h2>
+                <ul class="related-links">
+                    <li><a class="text-link" th:href="@{/disponibilidad}">Consultar disponibilidad</a></li>
+                    <li><a class="text-link" th:href="@{/reservaciones}">Ver reservaciones</a></li>
+                </ul>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,31 +1,32 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sistema de Gestión de Reservaciones de Hotel</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
-          integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/estilos.css}">
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Inicio', '/', ~{::main})}">
 <body>
-    <header class="site-header border-bottom">
-        <nav class="container py-3" aria-label="Menú principal">
-            <ul class="site-menu list-unstyled d-flex flex-wrap align-items-start gap-2 gap-md-4 mb-0">
-                <li><a class="menu-item" th:href="@{/}" aria-current="page">Inicio</a></li>
-                <li><span class="menu-item">Usuarios <small>Próximamente</small></span></li>
-                <li><span class="menu-item">Reservaciones <small>Próximamente</small></span></li>
-                <li><span class="menu-item">Habitaciones <small>Próximamente</small></span></li>
-                <li><span class="menu-item">Pagos <small>Próximamente</small></span></li>
-            </ul>
-        </nav>
-    </header>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="welcome-panel" aria-labelledby="titulo-inicio">
+            <div class="welcome-copy">
+                <h1 id="titulo-inicio">Sistema de Gestión de Reservaciones de Hotel</h1>
+                <p>Te damos la bienvenida al portal del hotel, un espacio para que los huéspedes y el personal puedan gestionar las reservaciones.</p>
+                <a class="btn welcome-link" th:href="@{/panel}">Abrir panel principal</a>
+            </div>
+            <img class="welcome-image" th:src="@{/img/vestibulo-hotel.webp}" width="1200" height="800" alt="">
+        </section>
 
-    <main class="container py-4 py-md-5">
-        <section class="welcome-panel rounded-4 p-4 p-md-5" aria-labelledby="titulo-inicio">
-            <h1 id="titulo-inicio" class="display-5 fw-semibold mb-3">Sistema de Gestión de Reservaciones de Hotel</h1>
-            <p class="lead mb-0">Te damos la bienvenida al portal del hotel, un espacio para que los huéspedes y el personal puedan gestionar las reservaciones.</p>
+        <section class="surface institutional-summary" aria-labelledby="titulo-institucion">
+            <div>
+                <h2 id="titulo-institucion">Centro Universitario UAEMéx Atlacomulco</h2>
+                <a class="text-link" th:href="@{/acerca-de}">Acerca del proyecto</a>
+            </div>
+            <div th:replace="~{fragmentos/componentes :: logotiposInstitucionales}"></div>
+        </section>
+
+        <section class="home-modules" aria-labelledby="titulo-accesos">
+            <h2 id="titulo-accesos">Accesos directos</h2>
+            <div class="module-grid">
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/disponibilidad', 'Consultar disponibilidad', 'Fechas de estancia y número de huéspedes.', 'calendario')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/reservaciones', 'Consultar reservaciones', 'Fechas, habitaciones y estado de cada estancia.', 'lista')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/habitaciones', 'Gestionar habitaciones', 'Inventario, tarifas y estado operativo.', 'habitacion')}"></a>
+            </div>
         </section>
     </main>
 </body>

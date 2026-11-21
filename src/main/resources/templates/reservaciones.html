@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Consultar reservaciones', '/reservaciones', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header class="page-heading panel-heading">
+            <div>
+                <h1>Consultar reservaciones</h1>
+                <p>Revisa las fechas, la habitación y el estado de cada estancia.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/reservaciones/nueva}">Nueva reservación</a>
+        </header>
+        <section class="surface" aria-labelledby="listado-reservaciones">
+            <div class="surface-heading">
+                <h2 id="listado-reservaciones">Listado de reservaciones</h2>
+                <span class="sample-label">Registros de ejemplo</span>
+            </div>
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de reservaciones de ejemplo">
+                <table class="table data-table">
+                    <thead><tr><th scope="col">Reservación</th><th scope="col">Huésped</th><th scope="col">Entrada</th><th scope="col">Salida</th><th scope="col">Habitación</th><th scope="col">Estado</th></tr></thead>
+                    <tbody>
+                        <tr><th scope="row">R-0101</th><td>Huésped Alfa</td><td><time datetime="2027-02-12">12 feb 2027</time></td><td><time datetime="2027-02-14">14 feb 2027</time></td><td>202 · Doble</td><td><span class="status status-blue">Confirmada</span></td></tr>
+                        <tr><th scope="row">R-0102</th><td>Huésped Beta</td><td><time datetime="2027-02-11">11 feb 2027</time></td><td><time datetime="2027-02-13">13 feb 2027</time></td><td>101 · Individual</td><td><span class="status status-green">En curso</span></td></tr>
+                        <tr><th scope="row">R-0103</th><td>Huésped Gamma</td><td><time datetime="2027-02-16">16 feb 2027</time></td><td><time datetime="2027-02-18">18 feb 2027</time></td><td>301 · Suite</td><td><span class="status status-amber">Pendiente</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

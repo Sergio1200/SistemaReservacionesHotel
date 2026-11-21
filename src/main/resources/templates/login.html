@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Inicio de sesión', '/login', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="login-frame" aria-labelledby="titulo-login">
+            <div class="login-copy">
+                <h1 id="titulo-login">Inicio de sesión</h1>
+                <p>Vista de acceso para huéspedes y personal del hotel.</p>
+                <form data-prototipo method="post" autocomplete="off">
+                    <div class="mb-3">
+                        <label class="form-label" for="identificador">Usuario o correo</label>
+                        <input class="form-control" id="identificador" type="text" autocapitalize="off" spellcheck="false">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="contrasena">Contraseña</label>
+                        <input class="form-control" id="contrasena" type="password">
+                    </div>
+                    <div th:replace="~{fragmentos/componentes :: accionDemo('Iniciar sesión')}"></div>
+                </form>
+                <a class="text-link" th:href="@{/panel}">Explorar el panel de demostración</a>
+            </div>
+            <img class="login-image" th:src="@{/img/vestibulo-hotel.webp}" width="1200" height="800" alt="">
+        </section>
+    </main>
+</body>
+</html>

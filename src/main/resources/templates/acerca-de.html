@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Acerca del proyecto', '/acerca-de', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Acerca del proyecto', 'Sistema de Gestión de Reservaciones de Hotel')}"></header>
+
+        <section class="surface institutional-summary about-overview" aria-labelledby="objetivo-proyecto">
+            <div>
+                <h2 id="objetivo-proyecto">Objetivo del sistema</h2>
+                <p>Organizar la gestión de huéspedes, habitaciones y reservaciones, y dar seguimiento a los pagos y a las entradas y salidas del hotel.</p>
+            </div>
+            <div th:replace="~{fragmentos/componentes :: logotiposInstitucionales}"></div>
+        </section>
+
+        <div class="work-grid">
+            <section class="surface form-surface" aria-labelledby="datos-academicos">
+                <h2 id="datos-academicos">Datos académicos</h2>
+                <dl class="academic-details">
+                    <div>
+                        <dt>Desarrollador</dt>
+                        <dd>Sergio Garduño Arriaga</dd>
+                    </div>
+                    <div>
+                        <dt>Grupo</dt>
+                        <dd>ICO 30</dd>
+                    </div>
+                    <div>
+                        <dt>Unidad de Aprendizaje</dt>
+                        <dd>Paradigmas de Programación I</dd>
+                    </div>
+                    <div>
+                        <dt>Periodo escolar</dt>
+                        <dd>2026B</dd>
+                    </div>
+                    <div class="academic-institution">
+                        <dt>Institución</dt>
+                        <dd>Centro Universitario UAEMéx Atlacomulco</dd>
+                    </div>
+                </dl>
+            </section>
+            <section class="surface form-surface" aria-labelledby="tecnologias-proyecto">
+                <h2 id="tecnologias-proyecto">Tecnologías utilizadas</h2>
+                <ul class="technology-list">
+                    <li>Java 21 y Spring Boot 4.2.0</li>
+                    <li>Spring MVC y Thymeleaf</li>
+                    <li>Bootstrap 5, CSS y JavaScript</li>
+                    <li>MySQL, Spring Data JPA y Flyway</li>
+                    <li>Maven y Apache NetBeans</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

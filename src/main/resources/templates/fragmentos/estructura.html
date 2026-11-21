@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:fragment="pagina(titulo, activa, contenido)">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${titulo} · Reservaciones Hotel|">Reservaciones Hotel</title>
+    <link rel="icon" type="image/png" th:href="@{/img/icono-hotel.png}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
+          integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <script th:src="@{/js/interfaz.js}" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <div class="app-shell">
+        <header class="app-sidebar">
+            <div class="sidebar-heading">
+                <a class="brand" th:href="@{/}" aria-label="Reservaciones Hotel, inicio">
+                    <span class="brand-mark" aria-hidden="true"></span>
+                    <span><strong>Reservaciones</strong><small>Gestión hotelera</small></span>
+                </a>
+                <button class="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false"
+                        data-menu-toggle>
+                    <span class="menu-lines" aria-hidden="true"></span> Menú
+                </button>
+            </div>
+            <nav id="app-menu" class="app-menu" aria-label="Menú principal">
+                <div class="menu-group">
+                    <p>General</p>
+                    <ul>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/', 'Inicio', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/panel', 'Panel principal', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/acerca-de', 'Acerca del proyecto', ${activa})}"></a></li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <p>Operación</p>
+                    <ul>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/huespedes', 'Huéspedes', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/habitaciones', 'Habitaciones', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/tipos-habitacion', 'Tipos de habitación', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/disponibilidad', 'Disponibilidad', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/reservaciones/nueva', 'Nueva reservación', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/reservaciones', 'Reservaciones', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/pagos', 'Pagos', ${activa})}"></a></li>
+                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/check-in-check-out', 'Check-in y check-out', ${activa})}"></a></li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <div class="app-body">
+            <div class="app-topbar">
+                <div class="app-content topbar-content">
+                    <div class="breadcrumb-label">
+                        <a th:href="@{/}">Portal del hotel</a><span aria-hidden="true">/</span>
+                        <span th:text="${titulo}">Inicio</span>
+                    </div>
+                    <div class="topbar-actions">
+                        <span class="demo-label">Modo demostración</span>
+                        <a class="topbar-login" th:href="@{/login}"
+                           th:attr="aria-current=${activa == '/login' ? 'page' : null}">Iniciar sesión</a>
+                    </div>
+                </div>
+            </div>
+            <main th:replace="${contenido}"></main>
+            <footer class="app-footer">
+                <div class="app-content footer-content">
+                    <div class="footer-author">
+                        <strong>Desarrollado por Sergio Garduño Arriaga</strong>
+                        <span>ICO 30 · Paradigmas de Programación I</span>
+                    </div>
+                    <span>Centro Universitario UAEMéx Atlacomulco</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Gestión de huéspedes', '/huespedes', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Gestión de huéspedes', 'Consulta el directorio y el formulario de registro de huéspedes.')}"></header>
+        <div class="work-grid">
+            <section class="surface" aria-labelledby="directorio-huespedes">
+                <div class="surface-heading">
+                    <h2 id="directorio-huespedes">Directorio</h2>
+                    <span class="sample-label">Registros de ejemplo</span>
+                </div>
+                <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de huéspedes de ejemplo">
+                    <table class="table data-table">
+                        <thead><tr><th scope="col">Huésped</th><th scope="col">Correo</th><th scope="col">Teléfono</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">Huésped Alfa</th><td>alfa@example.test</td><td>Sin teléfono</td></tr>
+                            <tr><th scope="row">Huésped Beta</th><td>beta@example.test</td><td>Sin teléfono</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="surface form-surface" aria-labelledby="registro-huesped">
+                <h2 id="registro-huesped">Registrar huésped</h2>
+                <form data-prototipo method="post" autocomplete="off" class="form-stack">
+                    <div>
+                        <label class="form-label" for="nombre-huesped">Nombre completo</label>
+                        <input class="form-control" id="nombre-huesped" type="text">
+                    </div>
+                    <div>
+                        <label class="form-label" for="correo-huesped">Correo electrónico</label>
+                        <input class="form-control" id="correo-huesped" type="email">
+                    </div>
+                    <div>
+                        <label class="form-label" for="telefono-huesped">Teléfono</label>
+                        <input class="form-control" id="telefono-huesped" type="tel">
+                    </div>
+                    <div th:replace="~{fragmentos/componentes :: accionDemo('Registrar huésped')}"></div>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Gestión de pagos', '/pagos', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Gestión de pagos', 'Consulta el historial y el formulario de pago simulado.')}"></header>
+        <div class="work-grid">
+            <section class="surface" aria-labelledby="historial-pagos">
+                <div class="surface-heading">
+                    <h2 id="historial-pagos">Historial de pagos</h2>
+                    <span class="sample-label">Registros de ejemplo</span>
+                </div>
+                <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de pagos de ejemplo">
+                    <table class="table data-table">
+                        <thead><tr><th scope="col">Pago</th><th scope="col">Reservación</th><th scope="col">Fecha</th><th scope="col">Monto (MXN)</th><th scope="col">Estado</th></tr></thead>
+                        <tbody>
+                            <tr><th scope="row">P-001</th><td>R-0101</td><td><time datetime="2027-02-10">10 feb 2027</time></td><td>$1,200.00</td><td><span class="status status-green">Pagado</span></td></tr>
+                            <tr><th scope="row">P-002</th><td>R-0103</td><td><time datetime="2027-02-12">12 feb 2027</time></td><td>$975.00</td><td><span class="status status-amber">Pendiente</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="surface form-surface" aria-labelledby="formulario-pago">
+                <h2 id="formulario-pago">Registrar pago simulado</h2>
+                <form data-prototipo method="post" autocomplete="off" class="form-stack">
+                    <div>
+                        <label class="form-label" for="pago-reservacion">Reservación</label>
+                        <select class="form-select" id="pago-reservacion">
+                            <option value="" selected disabled>Selecciona una reservación</option>
+                            <optgroup label="Reservaciones de ejemplo">
+                                <option>R-0101 · Huésped Alfa</option><option>R-0103 · Huésped Gamma</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="pago-monto">Monto (MXN)</label>
+                        <input class="form-control" id="pago-monto" type="number" min="0.01" step="0.01">
+                    </div>
+                    <div>
+                        <label class="form-label" for="pago-metodo">Método</label>
+                        <select class="form-select" id="pago-metodo">
+                            <option>Efectivo simulado</option><option>Tarjeta simulada</option>
+                        </select>
+                    </div>
+                    <div th:replace="~{fragmentos/componentes :: accionDemo('Registrar pago simulado')}"></div>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

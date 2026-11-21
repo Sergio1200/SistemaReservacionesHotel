@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Tipos de habitación', '/tipos-habitacion', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Tipos de habitación', 'Revisa las categorías que se podrán asignar en el inventario.')}"></header>
+        <section aria-labelledby="catalogo-tipos">
+            <div class="section-heading">
+                <h2 id="catalogo-tipos">Categorías</h2>
+                <span class="sample-label">Categorías de ejemplo</span>
+            </div>
+            <div class="module-grid">
+                <article class="surface category-card">
+                    <span class="tile-icon tile-icon-habitacion" aria-hidden="true"></span>
+                    <h3>Individual</h3>
+                    <p class="category-capacity">1 huésped</p>
+                    <p>Alojamiento para una persona.</p>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" disabled
+                            aria-describedby="edicion-tipos">Editar individual</button>
+                </article>
+                <article class="surface category-card">
+                    <span class="tile-icon tile-icon-habitacion" aria-hidden="true"></span>
+                    <h3>Doble</h3>
+                    <p class="category-capacity">2 huéspedes</p>
+                    <p>Categoría para una estancia de dos personas.</p>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" disabled
+                            aria-describedby="edicion-tipos">Editar doble</button>
+                </article>
+                <article class="surface category-card">
+                    <span class="tile-icon tile-icon-habitacion" aria-hidden="true"></span>
+                    <h3>Suite</h3>
+                    <p class="category-capacity">Hasta 4 huéspedes</p>
+                    <p>Una estancia con capacidad adicional.</p>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" disabled
+                            aria-describedby="edicion-tipos">Editar suite</button>
+                </article>
+            </div>
+            <div id="edicion-tipos" class="section-actions">
+                <div th:replace="~{fragmentos/componentes :: accionDemo('Nuevo tipo de habitación')}"></div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Check-in y check-out', '/check-in-check-out', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header class="page-heading panel-heading">
+            <div>
+                <h1>Check-in y check-out</h1>
+                <p>Consulta las reservaciones para revisar entradas y salidas en recepción.</p>
+            </div>
+            <a class="btn btn-outline-primary" th:href="@{/reservaciones}">Ver reservaciones</a>
+        </header>
+        <section class="surface" aria-labelledby="movimientos-recepcion">
+            <div class="surface-heading">
+                <h2 id="movimientos-recepcion">Entradas y salidas</h2>
+                <span class="sample-label">Registros de ejemplo</span>
+            </div>
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de entradas y salidas de ejemplo">
+                <table class="table data-table">
+                    <thead><tr><th scope="col">Reservación</th><th scope="col">Huésped</th><th scope="col">Habitación</th><th scope="col">Fecha prevista</th><th scope="col">Estado</th><th scope="col">Acción</th></tr></thead>
+                    <tbody>
+                        <tr><th scope="row">R-0101</th><td>Huésped Alfa</td><td>202</td><td><time datetime="2027-02-12">12 feb 2027</time></td><td><span class="status status-blue">Confirmada</span></td>
+                            <td><button class="btn btn-outline-secondary btn-sm" type="button" aria-describedby="nota-recepcion" disabled>Check-in</button></td></tr>
+                        <tr><th scope="row">R-0102</th><td>Huésped Beta</td><td>101</td><td><time datetime="2027-02-13">13 feb 2027</time></td><td><span class="status status-green">En curso</span></td>
+                            <td><button class="btn btn-outline-secondary btn-sm" type="button" aria-describedby="nota-recepcion" disabled>Check-out</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p id="nota-recepcion" class="table-note">Las acciones estarán disponibles en una próxima etapa.</p>
+        </section>
+    </main>
+</body>
+</html>

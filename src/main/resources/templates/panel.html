@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Panel principal', '/panel', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header class="page-heading panel-heading">
+            <div>
+                <h1>Panel principal</h1>
+                <p>Te damos la bienvenida. Elige un módulo para explorar el portal.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/reservaciones/nueva}">Nueva reservación</a>
+        </header>
+        <section class="panel-section" aria-labelledby="estancias">
+            <h2 id="estancias">Estancias</h2>
+            <div class="module-grid">
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/disponibilidad', 'Disponibilidad', 'Consulta de habitaciones por rango de fechas.', 'calendario')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/reservaciones', 'Reservaciones', 'Consulta de estancias y estados.', 'lista')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/check-in-check-out', 'Check-in y check-out', 'Entradas y salidas en recepción.', 'llave')}"></a>
+            </div>
+        </section>
+        <section class="panel-section" aria-labelledby="gestion">
+            <h2 id="gestion">Gestión del hotel</h2>
+            <div class="module-grid">
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/huespedes', 'Huéspedes', 'Directorio y formulario de registro.', 'persona')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/habitaciones', 'Habitaciones', 'Inventario, precios y estado operativo.', 'habitacion')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/tipos-habitacion', 'Tipos de habitación', 'Categorías Individual, Doble y Suite.', 'tipo')}"></a>
+                <a th:replace="~{fragmentos/componentes :: tarjeta('/pagos', 'Pagos', 'Historial y formulario de pago simulado.', 'pago')}"></a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

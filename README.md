@@ -1,6 +1,16 @@
 # ReservacionesHotel
 
-Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación sirve una página de bienvenida en español y cuenta con una primera versión del modelo de datos en MySQL.
+Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación incluye una página de bienvenida, diez vistas de demostración en español y un modelo de datos en MySQL.
+
+## Autor y contexto académico
+
+- **Desarrollador:** Sergio Garduño Arriaga.
+- **Grupo:** ICO 30.
+- **Unidad de Aprendizaje:** Paradigmas de Programación I.
+- **Institución:** Centro Universitario UAEMéx Atlacomulco.
+- **Periodo escolar:** 2026B.
+
+La página de inicio y la sección `/acerca-de` muestran los logotipos institucionales. El pie de página compartido identifica la autoría en todas las vistas.
 
 ## Tecnologías
 
@@ -53,7 +63,7 @@ sh ./mvnw clean verify
 sh ./mvnw spring-boot:run
 ```
 
-Abre [la página de inicio](http://localhost:8080/) cuando el servidor termine de arrancar. `Ctrl+C` detiene el servidor de la terminal. Para ejecutar el JAR generado por `clean verify`, usa `java -jar target/reservacioneshotel-0.1.0.jar`.
+Abre [la página de inicio](http://localhost:8080/) cuando el servidor termine de arrancar. Desde ahí puedes navegar al panel y a los módulos. `Ctrl+C` detiene el servidor de la terminal. Para ejecutar el JAR generado por `clean verify`, usa `java -jar target/reservacioneshotel-0.1.0.jar`.
 
 ## Abrir y ejecutar en Apache NetBeans
 
@@ -71,9 +81,10 @@ Si definiste las variables en PowerShell, cierra NetBeans y ábrelo desde esa mi
 | `pom.xml`, `.mvn/wrapper/`, `mvnw`, `mvnw.cmd` | Configuración del proyecto y de Maven Wrapper. |
 | `src/main/java/com/hotel/reservacioneshotel/` | Clase principal, `controller` y paquetes técnicos `config`, `service` y `repository`. |
 | `src/main/java/com/hotel/reservacioneshotel/domain/` | Paquetes de dominio `usuarios`, `reservaciones`, `habitaciones` y `pagos`. |
-| `src/main/resources/` | Conexión MySQL, migraciones, plantilla `templates/index.html` y estilos `static/css/estilos.css`. |
+| `src/main/resources/` | Conexión MySQL, migraciones, plantillas y fragmentos Thymeleaf, CSS, JavaScript del menú y fotografía del portal. |
 | `database/` | Script de creación del esquema MySQL. |
-| `src/test/` | Pruebas web y de persistencia, y configuración de H2. |
+| `src/test/` | Pruebas web, de navegación y de persistencia, y configuración de H2. |
+| `docs/interfaz/` | Descripción del diseño y capturas de las vistas. |
 
 ## Modelo de persistencia
 
@@ -116,7 +127,7 @@ Las asociaciones se mapean desde el lado que tiene la clave foránea. La herenci
 
 ## Pruebas
 
-`clean verify` ejecuta las dos pruebas web y las de persistencia con H2 en memoria. Ambas cargan la migración de Flyway. Las pruebas de persistencia guardan y recuperan relaciones con JPA y comprueban restricciones del esquema.
+`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. Las pruebas web verifican el inicio, las rutas de demostración, los enlaces, los recursos locales y el rechazo de solicitudes POST en los formularios visuales. Las pruebas de persistencia guardan y recuperan relaciones con JPA y comprueban restricciones del esquema. Los contextos de prueba cargan la migración de Flyway.
 
 Para repetir solo las pruebas JPA contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica la migración y las pruebas revierten sus operaciones de datos al terminar.
 
@@ -124,6 +135,24 @@ Para repetir solo las pruebas JPA contra MySQL, configura las variables de conex
 .\mvnw.cmd "-Dtest=PersistenciaJpaTests" "-Dhotel.test.profile=mysql" test
 ```
 
-## Estado de la etapa 2
+## Interfaz de la etapa 3
 
-La aplicación sigue sirviendo la página inicial en `GET /` y ya cuenta con el esquema versionado, las entidades y los repositorios JPA. Quedan pendientes el registro y la autenticación de huéspedes y empleados, las pantallas de gestión, el flujo de reservaciones y pagos, y el check-in y check-out.
+La página inicial sigue disponible en `GET /`. El menú permite recorrer las diez vistas de demostración y «Acerca del proyecto» sin autenticación. Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios permiten explorar los campos y mantienen deshabilitado el envío.
+
+| Ruta | Vista |
+| --- | --- |
+| `/login` | Inicio de sesión con campos de usuario o correo y contraseña. |
+| `/panel` | Panel principal con accesos a las vistas de operación y gestión. |
+| `/huespedes` | Directorio de huéspedes y formulario de registro. |
+| `/habitaciones` | Inventario y formulario con número, piso, tipo, precio y estado. |
+| `/tipos-habitacion` | Catálogo de las categorías Individual, Doble y Suite. |
+| `/disponibilidad` | Formulario de fechas y cantidad de huéspedes. |
+| `/reservaciones/nueva` | Selección de huésped, habitación y fechas de estancia. |
+| `/reservaciones` | Tabla de reservaciones con huésped, fechas, habitación y estado. |
+| `/pagos` | Historial de ejemplo y formulario para un futuro pago simulado. |
+| `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
+| `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
+
+La conexión MySQL y el esquema de la etapa 2 siguen activos al arrancar. Las vistas de demostración se renderizan sin consultas ni escrituras de datos del hotel. Quedan pendientes la autenticación y los permisos, el registro real, las operaciones CRUD, la disponibilidad en tiempo real y los flujos de reservaciones, pagos, check-in y check-out.
+
+Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <a th:fragment="enlaceMenu(ruta, etiqueta, activa)" class="menu-link" th:href="@{${ruta}}"
+       th:attr="aria-current=${activa == ruta ? 'page' : null}" th:text="${etiqueta}">Inicio</a>
+
+    <header th:fragment="encabezado(titulo, descripcion)" class="page-heading">
+        <h1 th:text="${titulo}">Título</h1>
+        <p th:text="${descripcion}">Descripción</p>
+    </header>
+
+    <a th:fragment="tarjeta(ruta, titulo, descripcion, icono)" class="module-card" th:href="@{${ruta}}">
+        <span class="tile-icon" th:classappend="|tile-icon-${icono}|" aria-hidden="true"></span>
+        <span class="module-text">
+            <strong th:text="${titulo}">Módulo</strong>
+            <span th:text="${descripcion}">Descripción</span>
+        </span>
+    </a>
+
+    <div th:fragment="accionDemo(etiqueta)" class="form-actions">
+        <button class="btn btn-primary" type="button" disabled th:text="${etiqueta}">Guardar</button>
+        <small>Disponible en una próxima etapa.</small>
+    </div>
+
+    <div th:fragment="logotiposInstitucionales" class="institutional-logos">
+        <img class="logo-uaemex" th:src="@{/img/logo-uaemex.png}" width="1200" height="1112"
+             alt="Escudo de la Universidad Autónoma del Estado de México">
+        <img class="logo-atlacomulco" th:src="@{/img/logo-uaem-atlacomulco.png}" width="325" height="187"
+             alt="Logotipo del Centro Universitario UAEMéx Atlacomulco">
+    </div>
+</body>
+</html>
