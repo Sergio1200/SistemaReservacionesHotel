@@ -7,7 +7,8 @@
             <div class="welcome-copy">
                 <h1 id="titulo-inicio">Sistema de Gestión de Reservaciones de Hotel</h1>
                 <p>Te damos la bienvenida al portal del hotel, un espacio para que los huéspedes y el personal puedan gestionar las reservaciones.</p>
-                <a class="btn welcome-link" th:href="@{/panel}">Abrir panel principal</a>
+                <a class="btn welcome-link" th:if="${sesion.autenticada}" th:href="@{/panel}">Abrir panel principal</a>
+                <a class="btn welcome-link" th:unless="${sesion.autenticada}" th:href="@{/login}">Entrar al portal</a>
             </div>
             <img class="welcome-image" th:src="@{/img/vestibulo-hotel.webp}" width="1200" height="800" alt="">
         </section>
@@ -24,8 +25,15 @@
             <h2 id="titulo-accesos">Accesos directos</h2>
             <div class="module-grid">
                 <a th:replace="~{fragmentos/componentes :: tarjeta('/disponibilidad', 'Consultar disponibilidad', 'Fechas de estancia y número de huéspedes.', 'calendario')}"></a>
-                <a th:replace="~{fragmentos/componentes :: tarjeta('/reservaciones', 'Consultar reservaciones', 'Fechas, habitaciones y estado de cada estancia.', 'lista')}"></a>
-                <a th:replace="~{fragmentos/componentes :: tarjeta('/habitaciones', 'Gestionar habitaciones', 'Inventario, tarifas y estado operativo.', 'habitacion')}"></a>
+                <th:block th:if="${sesion.reservas}">
+                    <a th:replace="~{fragmentos/componentes :: tarjeta('/reservaciones', 'Consultar reservaciones', 'Fechas, habitaciones y estado de cada estancia.', 'lista')}"></a>
+                </th:block>
+                <th:block th:if="${sesion.administracion}">
+                    <a th:replace="~{fragmentos/componentes :: tarjeta('/habitaciones', 'Gestionar habitaciones', 'Inventario, tarifas y estado operativo.', 'habitacion')}"></a>
+                </th:block>
+                <th:block th:unless="${sesion.autenticada}">
+                    <a th:replace="~{fragmentos/componentes :: tarjeta('/registro', 'Registro de huéspedes', 'Crea una cuenta para acceder al portal.', 'persona')}"></a>
+                </th:block>
             </div>
         </section>
     </main>

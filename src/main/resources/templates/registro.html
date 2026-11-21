@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Registro de huéspedes', '/registro', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-registro">
+            <header class="page-heading">
+                <h1 id="titulo-registro">Registro de huéspedes</h1>
+                <p>Crea una cuenta de huésped para acceder al portal.</p>
+            </header>
+            <form class="form-stack" th:action="@{/registro}" method="post" th:object="${registro}">
+                <div class="alert alert-danger mb-0" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                    <ul class="mb-0">
+                        <li th:each="error : ${#fields.globalErrors()}" th:text="${error}"></li>
+                    </ul>
+                </div>
+                <div>
+                    <label class="form-label" for="nombre">Nombre completo</label>
+                    <input class="form-control" th:field="*{nombre}" th:errorclass="is-invalid" type="text"
+                           maxlength="120" autocomplete="name" required>
+                    <p class="invalid-feedback" th:errors="*{nombre}"></p>
+                </div>
+                <div>
+                    <label class="form-label" for="correo">Correo electrónico</label>
+                    <input class="form-control" th:field="*{correo}" th:errorclass="is-invalid" type="email"
+                           maxlength="254" autocomplete="email" required>
+                    <p class="invalid-feedback" th:errors="*{correo}"></p>
+                </div>
+                <div>
+                    <label class="form-label" for="telefono">Teléfono</label>
+                    <input class="form-control" th:field="*{telefono}" th:errorclass="is-invalid" type="tel"
+                           maxlength="32" autocomplete="tel" required>
+                    <p class="invalid-feedback" th:errors="*{telefono}"></p>
+                </div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label" for="nueva-contrasena">Contraseña</label>
+                        <input class="form-control" id="nueva-contrasena" name="contrasena" type="password"
+                               minlength="8" maxlength="72" autocomplete="new-password" required>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" for="confirmacion">Confirmar contraseña</label>
+                        <input class="form-control" id="confirmacion" name="confirmacion" type="password"
+                               minlength="8" maxlength="72" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Crear cuenta</button>
+                    <a class="text-link" th:href="@{/login}">Ya tengo una cuenta</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

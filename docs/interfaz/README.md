@@ -6,7 +6,20 @@ El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del C
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
 
-## Capturas de la aplicación
+## Capturas de la etapa 4
+
+Las capturas se tomaron en Edge con la aplicación conectada a una instancia MySQL 8.0.46 aislada. La prueba creó un huésped desde el formulario, inició y cerró sesión con los tres roles y comprobó el mensaje 403 al solicitar directamente una ruta reservada a otro rol.
+
+| Flujo | Captura |
+| --- | --- |
+| Registro de huéspedes | [Escritorio](capturas/etapa-4/registro.png) · [Celular, 390 × 844](capturas/etapa-4/registro-390.png) |
+| Inicio de sesión | [Login](capturas/etapa-4/login.png) |
+| Huésped | [Panel de huésped](capturas/etapa-4/panel-huesped.png) |
+| Recepcionista | [Panel de recepción](capturas/etapa-4/panel-recepcion.png) |
+| Administrador | [Panel de administración](capturas/etapa-4/panel-administrador.png) |
+| Acceso denegado | [Respuesta 403](capturas/etapa-4/acceso-denegado.png) |
+
+## Capturas de la etapa 3
 
 | Vista | Ruta | Escritorio |
 | --- | --- | --- |
@@ -26,7 +39,7 @@ La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon 
 - **Celular, 390 × 844**. [Inicio](capturas/inicio-390.png), [Acerca del proyecto](capturas/acerca-de-390.png) y [tabla de reservaciones](capturas/reservaciones-390.png).
 - **Tableta, 768 × 1024**. [Panel principal](capturas/panel-768.png).
 
-## Verificación
+### Verificación de la etapa 3
 
 Las capturas proceden de la aplicación Spring Boot en ejecución con el perfil de pruebas y H2 en memoria. Las capturas de escritorio corresponden a una ventana de 1440 × 1000.
 

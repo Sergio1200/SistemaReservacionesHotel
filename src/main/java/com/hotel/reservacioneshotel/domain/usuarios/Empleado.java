@@ -55,6 +55,12 @@ public abstract class Empleado {
         return usuario;
     }
 
+    public String getContrasenaHash() {
+        return contrasenaHash;
+    }
+
+    public abstract Rol getRol();
+
     public boolean isActivo() {
         return activo;
     }

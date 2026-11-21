@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Acceso denegado', '/acceso-denegado', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-acceso">
+            <header class="page-heading">
+                <h1 id="titulo-acceso">Acceso denegado</h1>
+                <p>Tu sesión no tiene permiso para acceder a esta página o realizar esta acción.</p>
+            </header>
+            <a class="btn btn-primary" th:if="${sesion.autenticada}" th:href="@{/panel}">Volver al panel</a>
+            <a class="btn btn-primary" th:unless="${sesion.autenticada}" th:href="@{/login}">Ir al inicio de sesión</a>
+        </section>
+    </main>
+</body>
+</html>

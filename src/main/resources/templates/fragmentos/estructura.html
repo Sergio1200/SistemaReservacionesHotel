@@ -30,21 +30,21 @@
                     <p>General</p>
                     <ul>
                         <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/', 'Inicio', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/panel', 'Panel principal', ${activa})}"></a></li>
+                        <li th:if="${sesion.autenticada}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/panel', 'Panel principal', ${activa})}"></a></li>
                         <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/acerca-de', 'Acerca del proyecto', ${activa})}"></a></li>
                     </ul>
                 </div>
                 <div class="menu-group">
                     <p>Operación</p>
                     <ul>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/huespedes', 'Huéspedes', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/habitaciones', 'Habitaciones', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/tipos-habitacion', 'Tipos de habitación', ${activa})}"></a></li>
                         <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/disponibilidad', 'Disponibilidad', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/reservaciones/nueva', 'Nueva reservación', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/reservaciones', 'Reservaciones', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/pagos', 'Pagos', ${activa})}"></a></li>
-                        <li><a th:replace="~{fragmentos/componentes :: enlaceMenu('/check-in-check-out', 'Check-in y check-out', ${activa})}"></a></li>
+                        <li th:if="${sesion.reservas}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/reservaciones/nueva', 'Nueva reservación', ${activa})}"></a></li>
+                        <li th:if="${sesion.reservas}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/reservaciones', 'Reservaciones', ${activa})}"></a></li>
+                        <li th:if="${sesion.recepcion}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/huespedes', 'Huéspedes', ${activa})}"></a></li>
+                        <li th:if="${sesion.recepcion}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/pagos', 'Pagos', ${activa})}"></a></li>
+                        <li th:if="${sesion.recepcion}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/check-in-check-out', 'Check-in y check-out', ${activa})}"></a></li>
+                        <li th:if="${sesion.administracion}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/habitaciones', 'Habitaciones', ${activa})}"></a></li>
+                        <li th:if="${sesion.administracion}"><a th:replace="~{fragmentos/componentes :: enlaceMenu('/tipos-habitacion', 'Tipos de habitación', ${activa})}"></a></li>
                     </ul>
                 </div>
             </nav>
@@ -58,9 +58,18 @@
                         <span th:text="${titulo}">Inicio</span>
                     </div>
                     <div class="topbar-actions">
-                        <span class="demo-label">Modo demostración</span>
-                        <a class="topbar-login" th:href="@{/login}"
-                           th:attr="aria-current=${activa == '/login' ? 'page' : null}">Iniciar sesión</a>
+                        <th:block th:unless="${sesion.autenticada}">
+                            <a class="text-link topbar-register" th:href="@{/registro}"
+                               th:attr="aria-current=${activa == '/registro' ? 'page' : null}">Crear cuenta</a>
+                            <a class="topbar-login" th:href="@{/login}"
+                               th:attr="aria-current=${activa == '/login' ? 'page' : null}">Iniciar sesión</a>
+                        </th:block>
+                        <th:block th:if="${sesion.autenticada}">
+                            <span class="demo-label" th:text="${sesion.rol}">Rol</span>
+                            <form th:action="@{/logout}" method="post">
+                                <button class="topbar-login" type="submit">Cerrar sesión</button>
+                            </form>
+                        </th:block>
                     </div>
                 </div>
             </div>

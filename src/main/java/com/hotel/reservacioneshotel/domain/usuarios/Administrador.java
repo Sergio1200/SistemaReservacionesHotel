@@ -13,4 +13,9 @@ public class Administrador extends Empleado {
     public Administrador(String nombre, String usuario, String contrasenaHash, boolean activo) {
         super(nombre, usuario, contrasenaHash, activo);
     }
+
+    @Override
+    public Rol getRol() {
+        return Rol.ADMINISTRADOR;
+    }
 }

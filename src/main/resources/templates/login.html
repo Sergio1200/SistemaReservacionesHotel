@@ -6,19 +6,30 @@
         <section class="login-frame" aria-labelledby="titulo-login">
             <div class="login-copy">
                 <h1 id="titulo-login">Inicio de sesión</h1>
-                <p>Vista de acceso para huéspedes y personal del hotel.</p>
-                <form data-prototipo method="post" autocomplete="off">
+                <p>Accede con el correo electrónico de tu cuenta.</p>
+                <p class="alert alert-danger" role="alert" th:if="${param.error != null}">
+                    Correo o contraseña incorrectos.
+                </p>
+                <p class="alert alert-success" role="status" th:if="${param.registrado != null}">
+                    Tu cuenta de huésped se creó correctamente. Ya puedes iniciar sesión.
+                </p>
+                <p class="alert alert-info" role="status" th:if="${param.logout != null}">
+                    Cerraste sesión correctamente.
+                </p>
+                <form th:action="@{/login}" method="post">
                     <div class="mb-3">
-                        <label class="form-label" for="identificador">Usuario o correo</label>
-                        <input class="form-control" id="identificador" type="text" autocapitalize="off" spellcheck="false">
+                        <label class="form-label" for="identificador">Correo electrónico</label>
+                        <input class="form-control" id="identificador" name="correo" type="email" maxlength="254"
+                               autocomplete="username" autocapitalize="off" spellcheck="false" required>
                     </div>
                     <div class="mb-4">
                         <label class="form-label" for="contrasena">Contraseña</label>
-                        <input class="form-control" id="contrasena" type="password">
+                        <input class="form-control" id="contrasena" name="password" type="password"
+                               autocomplete="current-password" required>
                     </div>
-                    <div th:replace="~{fragmentos/componentes :: accionDemo('Iniciar sesión')}"></div>
+                    <button class="btn btn-primary" type="submit">Iniciar sesión</button>
                 </form>
-                <a class="text-link" th:href="@{/panel}">Explorar el panel de demostración</a>
+                <a class="text-link" th:href="@{/registro}">Crear cuenta de huésped</a>
             </div>
             <img class="login-image" th:src="@{/img/vestibulo-hotel.webp}" width="1200" height="800" alt="">
         </section>

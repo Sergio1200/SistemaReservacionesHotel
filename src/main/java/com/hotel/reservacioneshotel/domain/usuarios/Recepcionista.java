@@ -13,4 +13,9 @@ public class Recepcionista extends Empleado {
     public Recepcionista(String nombre, String usuario, String contrasenaHash, boolean activo) {
         super(nombre, usuario, contrasenaHash, activo);
     }
+
+    @Override
+    public Rol getRol() {
+        return Rol.RECEPCIONISTA;
+    }
 }

@@ -1,6 +1,6 @@
 # ReservacionesHotel
 
-Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación incluye una página de bienvenida, diez vistas de demostración en español y un modelo de datos en MySQL.
+Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación por correo y un portal de operación con acceso por roles.
 
 ## Autor y contexto académico
 
@@ -19,6 +19,7 @@ La página de inicio y la sección `/acerca-de` muestran los logotipos instituci
 - Bootstrap 5.3.9 desde jsDelivr y estilos propios. El navegador necesita acceso al CDN para cargar Bootstrap.
 - Apache Maven 3.9.16 mediante Maven Wrapper 3.3.4, con empaquetado como JAR ejecutable.
 - Spring Data JPA con Hibernate, MySQL Connector/J y Flyway para aplicar migraciones SQL versionadas.
+- Spring Security para el acceso por roles, la protección CSRF y la autenticación con BCrypt y sesiones de servidor.
 - JUnit Jupiter y MockMvc para las pruebas.
 - H2 en memoria, disponible solo en las pruebas.
 
@@ -97,7 +98,11 @@ El modelo sigue los cuatro paquetes del ZIP `Diagramas_Hotel_PlantUML_Corregidos
 | `reservaciones` | Cada `Reservacion` pertenece a un huésped y a una habitación, y puede recibir varios pagos. |
 | `pagos` | Cada `Pago` pertenece a una reservación. |
 
-Las asociaciones se mapean desde el lado que tiene la clave foránea. La herencia `SINGLE_TABLE` guarda ambos tipos de empleado en `empleados` y usa la columna `rol` para distinguirlos. Comparte los campos comunes y permite consultar ambos tipos con el repositorio de empleados sin uniones adicionales. `contrasena_hash` está reservado para hashes seguros como BCrypt. La creación y la comprobación de esos hashes se incorporarán con la autenticación.
+Las asociaciones se mapean desde el lado que tiene la clave foránea. La herencia `SINGLE_TABLE` guarda ambos tipos de empleado en `empleados` y usa la columna `rol` para distinguirlos. Comparte los campos comunes y permite consultar ambos tipos con el repositorio de empleados sin uniones adicionales.
+
+[La migración V2](src/main/resources/db/migration/V2__crear_cuentas.sql) agrega `cuentas` con un correo normalizado único para los tres roles y un vínculo a un solo titular, `Huesped` o `Empleado`. El rol de los huéspedes se fija al registrarlos y el de los empleados se deriva de su subtipo. El hash BCrypt de un huésped vive en `cuentas`. Los empleados usan el hash de `empleados` y su indicador `activo`.
+
+V2 reserva los correos históricos de huéspedes que sean únicos al normalizarlos y conserva sus fichas. Esas cuentas no tienen contraseña hasta verificar su titularidad. Los empleados existentes conservan su usuario y hash. Un empleado sin cuenta vinculada necesita que la administración le asigne un correo verificado antes de iniciar sesión.
 
 ### Reglas de datos
 
@@ -110,8 +115,8 @@ Las asociaciones se mapean desde el lado que tiene la clave foránea. La herenci
 
 1. Arranca la aplicación una vez con el esquema creado y las variables de entorno configuradas.
 2. Abre la conexión a la misma instancia en Workbench. En **Schemas**, elige **Refresh All** y expande **hotel_reservaciones > Tables**.
-3. Comprueba que aparecen `huespedes`, `empleados`, `tipos_habitacion`, `habitaciones`, `reservaciones`, `pagos` y `flyway_schema_history`.
-4. Puedes comprobar la migración y las cuatro claves foráneas desde una pestaña SQL.
+3. Comprueba que aparecen `huespedes`, `empleados`, `cuentas`, `tipos_habitacion`, `habitaciones`, `reservaciones`, `pagos` y `flyway_schema_history`.
+4. Puedes comprobar las migraciones y las claves foráneas desde una pestaña SQL.
 
    ```sql
    SELECT version, description, success
@@ -127,21 +132,60 @@ Las asociaciones se mapean desde el lado que tiene la clave foránea. La herenci
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. Las pruebas web verifican el inicio, las rutas de demostración, los enlaces, los recursos locales y el rechazo de solicitudes POST en los formularios visuales. Las pruebas de persistencia guardan y recuperan relaciones con JPA y comprueban restricciones del esquema. Los contextos de prueba cargan la migración de Flyway.
+`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. Las pruebas comprueban el registro y el hash BCrypt, el inicio y cierre de sesión, la autorización y CSRF, las rutas anteriores y la migración desde V1.
 
-Para repetir solo las pruebas JPA contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica la migración y las pruebas revierten sus operaciones de datos al terminar.
+Para repetir las pruebas de seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=PersistenciaJpaTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
-## Interfaz de la etapa 3
+## Registro y sesión
 
-La página inicial sigue disponible en `GET /`. El menú permite recorrer las diez vistas de demostración y «Acerca del proyecto» sin autenticación. Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios permiten explorar los campos y mantienen deshabilitado el envío.
+1. Abre `/registro`. Introduce nombre completo, correo, teléfono y una contraseña de al menos ocho caracteres y como máximo 72 bytes en UTF-8. Confirma la contraseña y pulsa **Crear cuenta**.
+2. En `/login`, inicia sesión con el correo y la contraseña. La cuenta pública recibe únicamente el rol de huésped.
+3. Para salir, pulsa **Cerrar sesión** en el encabezado. Spring Security recibe un POST e invalida la sesión.
+
+La validación se realiza en el servidor. El registro conserva un hash BCrypt y rechaza correos duplicados entre huéspedes y empleados. Spring Security comprueba el rol en cada solicitud, protege los formularios auténticos con CSRF y devuelve HTTP 403 con una página explicativa cuando el acceso está denegado. La aplicación utiliza cookies de sesión HttpOnly con SameSite=Lax.
+
+### Cuentas de demostración
+
+Usa el perfil `demo` con un esquema de desarrollo separado. El perfil crea las cuentas de empleado que falten. Los siguientes correos son de ejemplo y las contraseñas se eligen localmente.
+
+| Rol | Correo |
+| --- | --- |
+| Administrador | `administrador@example.test` |
+| Recepcionista | `recepcionista@example.test` |
+| Huésped | El que registres mediante `/registro`. |
+
+En PowerShell 7, con las variables de MySQL ya configuradas para la base de desarrollo:
+
+```powershell
+$env:HOTEL_DEMO_ADMIN_PASSWORD = Read-Host 'Contraseña para administrador de demostración' -MaskInput
+$env:HOTEL_DEMO_RECEPCION_PASSWORD = Read-Host 'Contraseña para recepcionista de demostración' -MaskInput
+.\mvnw.cmd "-Dspring-boot.run.profiles=demo" spring-boot:run
+```
+
+En NetBeans puedes ejecutar el mismo objetivo Maven con `-Dspring-boot.run.profiles=demo` desde una sesión que herede esas variables. Las contraseñas se solicitan para crear las cuentas. Los siguientes arranques conservan las cuentas y sus hashes. El arranque habitual sin el perfil `demo` deja desactivada la creación de cuentas de demostración.
+
+### Rutas por rol
+
+| Acceso | Rutas |
+| --- | --- |
+| Público | `/`, `/login`, `/registro`, `/acerca-de`, `/disponibilidad` y recursos bajo `/css/`, `/js/` e `/img/`. |
+| Cualquier rol autenticado | `/panel` y `POST /logout`. |
+| Huésped | `/reservaciones` y `/reservaciones/nueva`. |
+| Recepcionista | `/huespedes`, `/reservaciones`, `/reservaciones/nueva`, `/pagos` y `/check-in-check-out`. |
+| Administrador | `/habitaciones` y `/tipos-habitacion`. |
+
+## Vistas del portal
+
+Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios de operación mantienen deshabilitado el envío.
 
 | Ruta | Vista |
 | --- | --- |
-| `/login` | Inicio de sesión con campos de usuario o correo y contraseña. |
+| `/login` | Inicio de sesión con correo electrónico y contraseña. |
+| `/registro` | Registro funcional de una cuenta de huésped. |
 | `/panel` | Panel principal con accesos a las vistas de operación y gestión. |
 | `/huespedes` | Directorio de huéspedes y formulario de registro. |
 | `/habitaciones` | Inventario y formulario con número, piso, tipo, precio y estado. |
@@ -153,6 +197,6 @@ La página inicial sigue disponible en `GET /`. El menú permite recorrer las di
 | `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-La conexión MySQL y el esquema de la etapa 2 siguen activos al arrancar. Las vistas de demostración se renderizan sin consultas ni escrituras de datos del hotel. Quedan pendientes la autenticación y los permisos, el registro real, las operaciones CRUD, la disponibilidad en tiempo real y los flujos de reservaciones, pagos, check-in y check-out.
+Quedan pendientes las operaciones CRUD, la disponibilidad en tiempo real y los flujos de reservaciones, pagos, check-in y check-out.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

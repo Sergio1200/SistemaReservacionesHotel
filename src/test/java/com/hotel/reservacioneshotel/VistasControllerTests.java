@@ -14,10 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -30,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class VistasControllerTests {
 
     private static final List<String> RUTAS = List.of(
-            "/", "/login", "/panel", "/acerca-de", "/huespedes", "/habitaciones", "/tipos-habitacion",
+            "/", "/login", "/registro", "/panel", "/acerca-de", "/huespedes", "/habitaciones", "/tipos-habitacion",
             "/disponibilidad", "/reservaciones/nueva", "/reservaciones", "/pagos", "/check-in-check-out");
 
     private static final Pattern ENLACES = Pattern.compile("<a\\b[^>]*\\bhref=\"([^\"]+)\"");
@@ -53,13 +56,12 @@ class VistasControllerTests {
             "/check-in-check-out, check-in-check-out, Check-in y check-out"
     })
     void renderizaLosPrototipos(String ruta, String plantilla, String encabezado) throws Exception {
-        mvc.perform(get(ruta))
+        mvc.perform(peticionVista(ruta))
                 .andExpect(status().isOk())
                 .andExpect(handler().handlerType(VistasController.class))
                 .andExpect(view().name(plantilla))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(content().string(containsString(">" + encabezado + "</h1>")))
-                .andExpect(content().string(containsString("Modo demostración")));
+                .andExpect(content().string(containsString(">" + encabezado + "</h1>")));
     }
 
     @Test
@@ -85,7 +87,7 @@ class VistasControllerTests {
     void losEnlacesConducenAVistasExistentes() throws Exception {
         Set<String> rutasEnlazadas = new HashSet<>();
         for (String ruta : RUTAS) {
-            String html = mvc.perform(get(ruta))
+            String html = mvc.perform(peticionVista(ruta))
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
             assertThat(html).contains("id=\"contenido\"");
@@ -127,9 +129,25 @@ class VistasControllerTests {
 
     @Test
     void losFormulariosNoAceptanEnvios() throws Exception {
-        for (String ruta : List.of("/login", "/huespedes", "/habitaciones", "/disponibilidad",
+        for (String ruta : List.of("/huespedes", "/habitaciones", "/disponibilidad",
                 "/reservaciones/nueva", "/pagos")) {
-            mvc.perform(post(ruta)).andExpect(status().isMethodNotAllowed());
+            mvc.perform(conAcceso(post(ruta), ruta).with(csrf())).andExpect(status().isMethodNotAllowed());
         }
+    }
+
+    private MockHttpServletRequestBuilder peticionVista(String ruta) {
+        return conAcceso(get(ruta), ruta);
+    }
+
+    private MockHttpServletRequestBuilder conAcceso(MockHttpServletRequestBuilder peticion, String ruta) {
+        return switch (ruta) {
+            case "/panel", "/reservaciones", "/reservaciones/nueva" ->
+                peticion.with(user("visitante@example.test").roles("HUESPED"));
+            case "/huespedes", "/pagos", "/check-in-check-out" ->
+                peticion.with(user("recepcion@example.test").roles("RECEPCIONISTA"));
+            case "/habitaciones", "/tipos-habitacion" ->
+                peticion.with(user("admin@example.test").roles("ADMINISTRADOR"));
+            default -> peticion;
+        };
     }
 }
