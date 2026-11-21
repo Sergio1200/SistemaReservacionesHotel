@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Registro no encontrado', '', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-no-encontrado">
+            <header class="page-heading">
+                <h1 id="titulo-no-encontrado">Registro no encontrado</h1>
+                <p th:text="${mensaje}"></p>
+            </header>
+            <a class="text-link" th:href="@{/panel}">Volver al panel</a>
+        </section>
+    </main>
+</body>
+</html>

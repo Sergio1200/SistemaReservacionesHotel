@@ -6,6 +6,21 @@ El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del C
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
 
+## Capturas de la etapa 6
+
+Las capturas se tomaron en Edge con una sesión de administración, en una instancia aislada de MySQL 8.0.46. El catálogo empezó vacío. Se registraron tipos y habitaciones ficticias desde el portal y se comprobó que los cambios seguían visibles al recargar. Para verificar el bloqueo se agregó una reservación cancelada de prueba en esa base temporal. El encuadre termina antes del pie académico.
+
+| Flujo | Captura |
+| --- | --- |
+| Inventario | [Escritorio, ancho de 1440 px](capturas/etapa-6/listado.png) · [Celular, ancho de 390 px](capturas/etapa-6/listado-390.png) |
+| Alta | [Registro exitoso](capturas/etapa-6/registro-exitoso.png) |
+| Consulta | [Búsqueda por número y filtro por tipo](capturas/etapa-6/busqueda.png) |
+| Edición | [Formulario de habitación y estado operativo](capturas/etapa-6/editar.png) |
+| Baja | [Confirmación](capturas/etapa-6/confirmar-eliminacion.png) · [Bloqueo por reservación histórica](capturas/etapa-6/eliminacion-bloqueada.png) |
+| Tipos | [Catálogo y formulario](capturas/etapa-6/tipos.png) |
+
+En el celular, el formulario queda debajo del listado y la tabla se desplaza dentro de su región. También se verificaron el menú plegable, el pie académico y la carga de los logotipos.
+
 ## Capturas de la etapa 5
 
 Las capturas corresponden a la aplicación ejecutada en Edge con la sesión de recepción y una instancia aislada de MySQL 8.0.46. Se crearon fichas de prueba desde el formulario con direcciones `example.test`. El encuadre termina antes del pie académico. Se comprobó la persistencia tras recargar, la búsqueda, la edición, el rechazo de correos duplicados y la eliminación confirmada.

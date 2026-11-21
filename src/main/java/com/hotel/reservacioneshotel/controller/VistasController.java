@@ -30,16 +30,6 @@ public class VistasController {
         return "acerca-de";
     }
 
-    @GetMapping("/habitaciones")
-    public String habitaciones() {
-        return "habitaciones";
-    }
-
-    @GetMapping("/tipos-habitacion")
-    public String tiposHabitacion() {
-        return "tipos-habitacion";
-    }
-
     @GetMapping("/disponibilidad")
     public String disponibilidad() {
         return "disponibilidad";

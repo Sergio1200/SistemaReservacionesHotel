@@ -3,55 +3,81 @@
       th:replace="~{fragmentos/estructura :: pagina('Gestión de habitaciones', '/habitaciones', ~{::main})}">
 <body>
     <main id="contenido" class="app-content app-main" tabindex="-1">
-        <header th:replace="~{fragmentos/componentes :: encabezado('Gestión de habitaciones', 'Revisa el inventario, las tarifas y el estado operativo.')}"></header>
-        <div class="work-grid">
+        <header th:replace="~{fragmentos/componentes :: encabezado('Gestión de habitaciones', 'Administra el inventario y las tarifas del hotel.')}"></header>
+        <p class="alert alert-success" role="status" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+        <div class="work-grid inventario-grid">
             <section class="surface" aria-labelledby="inventario-habitaciones">
-                <div class="surface-heading">
-                    <h2 id="inventario-habitaciones">Inventario</h2>
-                    <span class="sample-label">Registros de ejemplo</span>
-                </div>
-                <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de habitaciones de ejemplo">
-                    <table class="table data-table">
-                        <thead><tr><th scope="col">Número</th><th scope="col">Piso</th><th scope="col">Tipo</th><th scope="col">Precio por noche</th><th scope="col">Estado</th></tr></thead>
+                <div class="surface-heading"><h2 id="inventario-habitaciones">Inventario</h2></div>
+                <form class="filtros-inventario" th:action="@{/habitaciones}" method="get" role="search">
+                    <div>
+                        <label class="form-label" for="filtro-numero">Buscar por número</label>
+                        <input class="form-control" id="filtro-numero" name="q" th:value="${q}" maxlength="20" type="search">
+                    </div>
+                    <div>
+                        <label class="form-label" for="filtro-tipo">Filtrar por tipo</label>
+                        <select class="form-select" id="filtro-tipo" name="tipo">
+                            <option value="">Todos</option>
+                            <option th:each="tipo : ${tipos}" th:value="${tipo.idTipo}" th:text="${tipo.nombre}"
+                                    th:selected="${tipo.idTipo == tipoFiltro}"></option>
+                        </select>
+                    </div>
+                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                    <a class="text-link" th:if="${!q.isEmpty() or tipoFiltro != null}" th:href="@{/habitaciones}">Limpiar</a>
+                </form>
+                <p class="table-note" th:if="${#lists.isEmpty(habitaciones)}"
+                   th:text="${q.isEmpty() and tipoFiltro == null ? 'Aún no hay habitaciones registradas.' : 'No se encontraron habitaciones con esos filtros.'}"></p>
+                <div class="table-responsive" tabindex="0" role="region" aria-labelledby="inventario-habitaciones"
+                     th:unless="${#lists.isEmpty(habitaciones)}">
+                    <table class="table data-table tabla-inventario">
+                        <thead>
+                            <tr>
+                                <th scope="col">Número</th><th scope="col">Piso</th><th scope="col">Tipo</th>
+                                <th scope="col">Capacidad</th><th scope="col">Noche (MXN)</th><th scope="col">Estado</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            <tr><th scope="row">101</th><td>1</td><td>Individual</td><td>$850.00</td><td><span class="status status-green">Disponible</span></td></tr>
-                            <tr><th scope="row">202</th><td>2</td><td>Doble</td><td>$1,200.00</td><td><span class="status status-blue">Ocupada</span></td></tr>
-                            <tr><th scope="row">301</th><td>3</td><td>Suite</td><td>$1,950.00</td><td><span class="status status-green">Disponible</span></td></tr>
+                            <tr th:each="habitacion : ${habitaciones}">
+                                <th scope="row" th:text="${habitacion.numero}"></th>
+                                <td th:text="${habitacion.piso}"></td>
+                                <td class="texto-inventario" th:text="${habitacion.tipoHabitacion.nombre}"></td>
+                                <td th:text="${habitacion.tipoHabitacion.capacidad}"></td>
+                                <td th:text="${#numbers.formatDecimal(habitacion.precioPorNoche, 1, 2)}"></td>
+                                <td><span class="status" th:classappend="${habitacion.estadoOperativo.name() == 'DISPONIBLE' ? 'status-green' : 'status-blue'}"
+                                          th:text="${habitacion.estadoOperativo.etiqueta}"></span></td>
+                                <td>
+                                    <div class="acciones-inventario">
+                                        <a class="text-link" th:href="@{/habitaciones/{id}/editar(id=${habitacion.idHabitacion})}"
+                                           th:aria-label="|Editar habitación ${habitacion.numero}|">Editar</a>
+                                        <a class="text-link" th:href="@{/habitaciones/{id}/eliminar(id=${habitacion.idHabitacion})}"
+                                           th:aria-label="|Revisar eliminación de habitación ${habitacion.numero}|">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
             <section class="surface form-surface" aria-labelledby="formulario-habitacion">
                 <h2 id="formulario-habitacion">Registrar habitación</h2>
-                <form data-prototipo method="post" autocomplete="off" class="form-stack">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label class="form-label" for="numero-habitacion">Número</label>
-                            <input class="form-control" id="numero-habitacion" type="text">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label" for="piso-habitacion">Piso</label>
-                            <input class="form-control" id="piso-habitacion" type="number" step="1">
-                        </div>
-                    </div>
+                <p class="alert alert-info" th:if="${#lists.isEmpty(tipos)}">
+                    Para registrar una habitación, primero crea un
+                    <a class="alert-link" th:href="@{/tipos-habitacion}">tipo de habitación</a>.
+                </p>
+                <form class="form-stack" th:action="@{/habitaciones}" th:object="${habitacionForm}" method="post">
+                    <th:block th:replace="~{fragmentos/inventario-formularios :: errores}"></th:block>
+                    <th:block th:replace="~{fragmentos/inventario-formularios :: habitacion}"></th:block>
                     <div>
-                        <label class="form-label" for="tipo-habitacion">Tipo de habitación</label>
-                        <select class="form-select" id="tipo-habitacion">
-                            <option value="" selected disabled>Selecciona un tipo</option>
-                            <option>Individual</option><option>Doble</option><option>Suite</option>
+                        <label class="form-label" for="estado">Estado operativo inicial</label>
+                        <select class="form-select" th:field="*{estado}" th:errorclass="is-invalid" required>
+                            <option value="">Selecciona un estado</option>
+                            <option th:each="estado : ${estados}" th:value="${estado.name()}" th:text="${estado.etiqueta}"></option>
                         </select>
+                        <p class="invalid-feedback" th:errors="*{estado}"></p>
                     </div>
-                    <div>
-                        <label class="form-label" for="precio-habitacion">Precio por noche (MXN)</label>
-                        <input class="form-control" id="precio-habitacion" type="number" min="0" step="0.01">
+                    <div class="form-actions">
+                        <button class="btn btn-primary" th:disabled="${#lists.isEmpty(tipos)}" type="submit">Registrar habitación</button>
                     </div>
-                    <div>
-                        <label class="form-label" for="estado-habitacion">Estado operativo</label>
-                        <select class="form-select" id="estado-habitacion">
-                            <option>Disponible</option><option>Ocupada</option>
-                        </select>
-                    </div>
-                    <div th:replace="~{fragmentos/componentes :: accionDemo('Guardar habitación')}"></div>
                 </form>
             </section>
         </div>

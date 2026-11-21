@@ -49,4 +49,10 @@ public class TipoHabitacion {
     public String getDescripcion() {
         return descripcion;
     }
+
+    public void actualizarDatos(String nombre, int capacidad, String descripcion) {
+        this.nombre = nombre;
+        this.capacidad = capacidad;
+        this.descripcion = descripcion;
+    }
 }

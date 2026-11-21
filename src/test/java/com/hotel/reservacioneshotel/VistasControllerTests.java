@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.hotel.reservacioneshotel.controller.HabitacionController;
 import com.hotel.reservacioneshotel.controller.HuespedController;
+import com.hotel.reservacioneshotel.controller.TipoHabitacionController;
 import com.hotel.reservacioneshotel.controller.VistasController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -57,9 +59,15 @@ class VistasControllerTests {
             "/check-in-check-out, check-in-check-out, Check-in y check-out"
     })
     void renderizaLasVistasDelPortal(String ruta, String plantilla, String encabezado) throws Exception {
+        Class<?> controlador = switch (ruta) {
+            case "/huespedes" -> HuespedController.class;
+            case "/habitaciones" -> HabitacionController.class;
+            case "/tipos-habitacion" -> TipoHabitacionController.class;
+            default -> VistasController.class;
+        };
         mvc.perform(peticionVista(ruta))
                 .andExpect(status().isOk())
-                .andExpect(handler().handlerType(ruta.equals("/huespedes") ? HuespedController.class : VistasController.class))
+                .andExpect(handler().handlerType(controlador))
                 .andExpect(view().name(plantilla))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(content().string(containsString(">" + encabezado + "</h1>")));
@@ -130,7 +138,7 @@ class VistasControllerTests {
 
     @Test
     void losFormulariosNoAceptanEnvios() throws Exception {
-        for (String ruta : List.of("/habitaciones", "/disponibilidad",
+        for (String ruta : List.of("/disponibilidad",
                 "/reservaciones/nueva", "/pagos")) {
             mvc.perform(conAcceso(post(ruta), ruta).with(csrf())).andExpect(status().isMethodNotAllowed());
         }

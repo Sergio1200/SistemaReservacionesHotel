@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina(${titulo}, ${modulo}, ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-eliminar">
+            <header class="page-heading">
+                <h1 id="titulo-eliminar" th:text="${titulo}"></h1>
+                <p class="detalle-inventario" th:text="${detalle}"></p>
+            </header>
+            <p class="alert alert-warning" role="alert" th:if="${mensajeError != null or motivo != null}"
+               th:text="${mensajeError ?: motivo}"></p>
+            <form class="form-stack" th:if="${motivo == null}" method="post"
+                  th:action="@{${modulo + '/' + id + '/eliminar'}}">
+                <p class="mb-0">Confirma si deseas eliminar este registro de forma permanente.</p>
+                <div class="form-actions">
+                    <button class="btn btn-danger" type="submit">Confirmar eliminación</button>
+                    <a class="text-link" th:href="@{${modulo}}">Cancelar</a>
+                </div>
+            </form>
+            <a class="text-link" th:if="${motivo != null}" th:href="@{${modulo}}">Volver al listado</a>
+        </section>
+    </main>
+</body>
+</html>

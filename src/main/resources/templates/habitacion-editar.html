@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Editar habitación', '/habitaciones', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-editar">
+            <header class="page-heading">
+                <h1 id="titulo-editar">Editar habitación</h1>
+                <p th:text="|Habitación ${habitacion.numero}|"></p>
+            </header>
+            <form class="form-stack" th:object="${habitacionForm}" method="post"
+                  th:action="@{/habitaciones/{id}/editar(id=${habitacion.idHabitacion})}">
+                <th:block th:replace="~{fragmentos/inventario-formularios :: errores}"></th:block>
+                <th:block th:replace="~{fragmentos/inventario-formularios :: habitacion}"></th:block>
+                <p class="form-text mb-0">
+                    Estado operativo actual: <strong th:text="${habitacion.estadoOperativo.etiqueta}"></strong>.
+                    Esta edición actualiza los datos del inventario.
+                </p>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                    <a class="text-link" th:href="@{/habitaciones}">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

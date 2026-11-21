@@ -78,4 +78,11 @@ public class Habitacion {
     public TipoHabitacion getTipoHabitacion() {
         return tipoHabitacion;
     }
+
+    public void actualizarDatos(String numero, int piso, BigDecimal precioPorNoche, TipoHabitacion tipoHabitacion) {
+        this.numero = numero;
+        this.piso = piso;
+        this.precioPorNoche = precioPorNoche;
+        this.tipoHabitacion = tipoHabitacion;
+    }
 }

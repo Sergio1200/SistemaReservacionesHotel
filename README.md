@@ -1,6 +1,6 @@
 # ReservacionesHotel
 
-Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación por correo y un portal de operación con acceso por roles.
+Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación por correo, gestión de huéspedes para recepción e inventario de habitaciones para administración.
 
 ## Autor y contexto académico
 
@@ -132,12 +132,12 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. La suite comprueba el registro público y BCrypt, la sesión, la autorización y CSRF, las rutas del portal y la migración desde V1. `HuespedCrudMvcTests` cubre el directorio, la búsqueda, el alta, la edición, la eliminación y sus restricciones.
+`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. La suite comprueba el registro público y BCrypt, la sesión, la autorización y CSRF, las rutas del portal y la migración desde V1. `HuespedCrudMvcTests` cubre el directorio de recepción e `InventarioCrudMvcTests` cubre habitaciones, tipos y las restricciones relacionadas con reservaciones.
 
-Para repetir las pruebas de huéspedes, seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
+Para repetir las pruebas de habitaciones, huéspedes, seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
 ## Registro y sesión
@@ -176,7 +176,7 @@ En NetBeans puedes ejecutar el mismo objetivo Maven con `-Dspring-boot.run.profi
 | Cualquier rol autenticado | `/panel` y `POST /logout`. |
 | Huésped | `/reservaciones` y `/reservaciones/nueva`. |
 | Recepcionista | `/huespedes` y sus subrutas, `/reservaciones`, `/reservaciones/nueva`, `/pagos` y `/check-in-check-out`. |
-| Administrador | `/habitaciones` y `/tipos-habitacion`. |
+| Administrador | `/habitaciones`, `/tipos-habitacion` y sus subrutas. |
 
 ## Gestión de huéspedes
 
@@ -197,6 +197,33 @@ El alta de recepción guarda un `Huesped` y reserva su correo normalizado en una
 
 Se exige confirmación para eliminar. Se conserva la ficha si existe cualquier reservación asociada, incluso cancelada, o si su cuenta está activa. En una baja permitida, se elimina explícitamente la reserva de correo inactiva y la ficha. Las claves foráneas protegen las reservaciones y el historial de pagos. Esta etapa usa las migraciones V1 y V2 existentes.
 
+## Gestión de habitaciones y tipos
+
+Solo el rol `ADMINISTRADOR` tiene acceso a ambos módulos. Las operaciones de escritura usan POST y requieren CSRF.
+
+| Método y ruta | Operación |
+| --- | --- |
+| `GET /habitaciones` | Muestra número, piso, tipo, capacidad, tarifa por noche y estado. Admite `q` para buscar por número y `tipo` para filtrar por ID de tipo. |
+| `POST /habitaciones` | Registra una habitación y su estado operativo inicial. |
+| `GET /tipos-habitacion` y `POST /tipos-habitacion` | Muestra el catálogo y registra un tipo, respectivamente. |
+| `GET` y `POST` en `/habitaciones/{id}/editar` o `/tipos-habitacion/{id}/editar` | Muestran el formulario y guardan los cambios, respectivamente. |
+| `GET` y `POST` en `/habitaciones/{id}/eliminar` o `/tipos-habitacion/{id}/eliminar` | Muestran la confirmación o el motivo del bloqueo y ejecutan una eliminación permitida, respectivamente. |
+
+`HabitacionController` y `TipoHabitacionController` enlazan los formularios validados con `HabitacionService` y `TipoHabitacionService`. Los servicios aplican las reglas en transacciones y reutilizan las entidades `Habitacion` y `TipoHabitacion` y sus repositorios. `ReservacionRepository` comprueba el cupo y las relaciones con reservaciones. Una habitación o un tipo inexistente devuelve HTTP 404.
+
+- Habitación. Número único de hasta 20 caracteres, piso entero a partir de cero, tipo existente y tarifa en MXN mayor que cero, de hasta diez cifras enteras y dos decimales. Cero representa la planta baja. El inventario puede cambiar la tarifa durante una estancia en curso. En ese caso bloquea los cambios de número, piso y tipo.
+- Tipo. Nombre único de hasta 80 caracteres, capacidad entera mayor que cero y descripción opcional de hasta 255 caracteres. Se admiten Individual, Doble, Suite u otros nombres. El catálogo muestra las filas que ya existen en MySQL. Si está vacío, el administrador puede crear los tipos desde la interfaz. El arranque no inserta categorías de forma automática.
+- Cupo. Cambiar el tipo de una habitación o reducir la capacidad de un tipo debe conservar el cupo de toda reserva pendiente, confirmada o en curso. Cada reservación conserva su tarifa por noche y su costo total al editar la tarifa del inventario.
+- Eliminación. Se bloquea la baja de cualquier habitación con reservaciones, incluso canceladas, y de cualquier tipo asignado a habitaciones. Las claves foráneas protegen las relaciones y el historial. Se utilizan las migraciones V1 y V2.
+
+### Estado operativo y disponibilidad
+
+El estado persistido es `DISPONIBLE` u `OCUPADA`, conforme al UML corregido. En el inventario se elige el estado inicial al registrar la habitación. Durante la edición se muestra el estado actual para consulta. Los flujos futuros de check-in y check-out gestionarán las transiciones. «Reservada» se determinará para el intervalo solicitado y se tendrá en cuenta al buscar disponibilidad por fechas en la etapa 7.
+
+### Probar en Apache NetBeans
+
+Con Java 21 y las variables de una base MySQL de desarrollo configuradas, ejecuta `clean verify` desde **Run Maven > Other Goals…**. Para probar en el navegador, ejecuta `spring-boot:run -Dspring-boot.run.profiles=demo` con las variables del perfil de demostración. Inicia sesión como administrador, abre **Tipos de habitación** y registra un tipo que aún falte. En **Habitaciones**, crea un registro de prueba, recarga, filtra por su número o tipo, edítalo y confirma su eliminación. Puedes probar la protección de un tipo intentando eliminarlo mientras conserva una habitación asociada.
+
 ## Vistas del portal
 
 Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios de los prototipos mantienen deshabilitado el envío.
@@ -207,8 +234,8 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/registro` | Registro funcional de una cuenta de huésped. |
 | `/panel` | Panel principal con accesos a las vistas de operación y gestión. |
 | `/huespedes` | Directorio de MySQL con búsqueda, alta, edición y eliminación controlada. |
-| `/habitaciones` | Inventario y formulario con número, piso, tipo, precio y estado. |
-| `/tipos-habitacion` | Catálogo de las categorías Individual, Doble y Suite. |
+| `/habitaciones` | Inventario de MySQL con búsqueda, filtro, alta, edición y eliminación controlada. |
+| `/tipos-habitacion` | Catálogo de MySQL con alta, edición y eliminación controlada. |
 | `/disponibilidad` | Formulario de fechas y cantidad de huéspedes. |
 | `/reservaciones/nueva` | Selección de huésped, habitación y fechas de estancia. |
 | `/reservaciones` | Tabla de reservaciones con huésped, fechas, habitación y estado. |
@@ -216,6 +243,6 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-Quedan pendientes el CRUD de habitaciones, la disponibilidad en tiempo real, los flujos de reservaciones, pagos, check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
+La etapa 7 queda pendiente para consultar disponibilidad por fechas y capacidad. También quedan pendientes los flujos de reservaciones, pagos, check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

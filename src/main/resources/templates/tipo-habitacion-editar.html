@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Editar tipo de habitación', '/tipos-habitacion', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-editar">
+            <header class="page-heading">
+                <h1 id="titulo-editar">Editar tipo de habitación</h1>
+                <p th:text="${tipoHabitacion.nombre}"></p>
+            </header>
+            <form class="form-stack" th:object="${tipoHabitacionForm}" method="post"
+                  th:action="@{/tipos-habitacion/{id}/editar(id=${tipoHabitacion.idTipo})}">
+                <th:block th:replace="~{fragmentos/inventario-formularios :: tipo}"></th:block>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                    <a class="text-link" th:href="@{/tipos-habitacion}">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
