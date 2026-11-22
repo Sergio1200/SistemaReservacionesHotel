@@ -90,9 +90,7 @@ public class PagoService {
             if (pago.getMonto().compareTo(saldo.pendiente()) > 0 || saldo.enTramite().compareTo(saldo.pendiente()) > 0) {
                 throw new OperacionPagoNoPermitida("La aprobación supera el saldo. Rechaza el intento o revisa los otros pagos.");
             }
-            if (saldo.pagado().add(pago.getMonto()).compareTo(saldo.total()) == 0) {
-                reservacion.confirmarPagoCompleto();
-            }
+            reservacion.actualizarConfirmacion(saldo.pagado().add(pago.getMonto()));
         }
         pago.finalizar(aprobar);
     }

@@ -262,6 +262,64 @@ class PagoMvcTests {
                 .andExpect(content().string(not(containsString("CVV"))));
     }
 
+    @Test
+    void ampliarUnaReservaPagadaExigeCubrirLaDiferenciaAntesDelCheckIn() throws Exception {
+        Pago primero = registrar(reserva, "100", propio());
+        procesar(reserva, primero);
+        validar(reserva, primero, "APROBAR");
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReservacion.CONFIRMADA);
+
+        LocalDate nuevaEntrada = reserva.getFechaEntrada().plusDays(1);
+        cambiarPeriodo(nuevaEntrada, 1);
+        assertThat(reserva.getFechaEntrada()).isEqualTo(nuevaEntrada);
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReservacion.CONFIRMADA);
+        comprobarSaldo("100", "0", "0", "0");
+
+        cambiarNoches(2);
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReservacion.PENDIENTE);
+        comprobarSaldo("100", "100", "0", "100");
+        mvc.perform(post("/check-in-check-out/{id}/check-in", reserva.getIdReservacion()).with(recepcion()).with(csrf()))
+                .andExpect(status().isConflict())
+                .andExpect(content().string(containsString("reservación confirmada")));
+
+        Pago diferencia = registrar(reserva, "100", propio());
+        procesar(reserva, diferencia);
+        validar(reserva, diferencia, "APROBAR");
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReservacion.CONFIRMADA);
+        comprobarSaldo("200", "0", "0", "0");
+        assertThat(primero.getEstado()).isEqualTo(EstadoPago.PAGADO);
+        assertThat(primero.getMonto()).isEqualByComparingTo("100.00");
+        assertThat(primero.getReservacion().getIdReservacion()).isEqualTo(reserva.getIdReservacion());
+    }
+
+    @Test
+    void reducirUnaReservaAlTotalYaPagadoLaConfirmaSinCrearOtroPago() throws Exception {
+        cambiarNoches(2);
+        Pago primero = registrar(reserva, "100", propio());
+        procesar(reserva, primero);
+        validar(reserva, primero, "APROBAR");
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReservacion.PENDIENTE);
+
+        cambiarNoches(1);
+        assertThat(reserva.getEstado()).isEqualTo(EstadoReservacion.CONFIRMADA);
+        comprobarSaldo("100", "0", "0", "0");
+        assertThat(pagos.findByReservacion_IdReservacionOrderByFechaDescIdPagoDesc(reserva.getIdReservacion()))
+                .extracting(Pago::getIdPago).containsExactly(primero.getIdPago());
+    }
+
+    private void cambiarNoches(int noches) throws Exception {
+        cambiarPeriodo(reserva.getFechaEntrada(), noches);
+    }
+
+    private void cambiarPeriodo(LocalDate entrada, int noches) throws Exception {
+        mvc.perform(post("/reservaciones/{id}/editar", reserva.getIdReservacion()).with(propio()).with(csrf())
+                        .param("habitacionId", habitacion.getIdHabitacion().toString())
+                        .param("entrada", entrada.toString())
+                        .param("salida", entrada.plusDays(noches).toString())
+                        .param("personas", "1"))
+                .andExpect(redirectedUrl("/reservaciones/" + reserva.getIdReservacion()));
+    }
+
     private void comprobarSaldo(String pagado, String pendiente, String enTramite, String disponible) throws Exception {
         var respuesta = mvc.perform(get(ruta(reserva)).with(propio())).andExpect(status().isOk()).andReturn();
         Historial historial = (Historial) respuesta.getModelAndView().getModel().get("historial");

@@ -109,7 +109,7 @@ public class EstanciaController {
     @ExceptionHandler({TransactionException.class, DataAccessException.class})
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public String almacenamiento(RuntimeException exception, HttpServletRequest solicitud, Model modelo) {
-        LOG.warn("No fue posible consultar o actualizar la estancia.", exception);
+        LOG.warn("No fue posible consultar o actualizar la estancia ({})", exception.getClass().getSimpleName());
         return error(solicitud, modelo, "No se pudo completar la operación. Consulta el estado de la estancia antes de reintentar.");
     }
 

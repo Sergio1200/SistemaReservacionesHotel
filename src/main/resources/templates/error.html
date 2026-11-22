@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Error de solicitud', '', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-error">
+            <h1 id="titulo-error">No se pudo completar la solicitud</h1>
+            <div th:switch="${status}">
+                <p th:case="400">Revisa los datos de la solicitud y vuelve a intentarlo.</p>
+                <p th:case="404">La página solicitada no está disponible.</p>
+                <p th:case="405">Usa el formulario correspondiente para realizar la operación.</p>
+                <p th:case="*">El servicio encontró un problema. Vuelve a intentarlo más tarde.</p>
+            </div>
+            <a class="btn btn-outline-primary" th:href="@{/}">Volver al inicio</a>
+        </section>
+    </main>
+</body>
+</html>

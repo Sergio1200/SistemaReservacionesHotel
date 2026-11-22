@@ -96,8 +96,8 @@ public class ReservacionService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void actualizar(Operador operador, Long id, Long huespedId, Long habitacionId,
-                           LocalDate entrada, LocalDate salida, int personas) {
+    public EstadoReservacion actualizar(Operador operador, Long id, Long huespedId, Long habitacionId,
+                                        LocalDate entrada, LocalDate salida, int personas) {
         Reservacion reservacion = bloquearReservacion(operador, id);
         exigirEstadoEditable(reservacion);
         if (huespedId != null && !huespedId.equals(reservacion.getHuesped().getIdHuesped())) {
@@ -110,10 +110,13 @@ public class ReservacionService {
                 || !salida.equals(reservacion.getFechaSalida());
         BigDecimal tarifa = cambiaEstancia ? habitacion.getPrecioPorNoche() : reservacion.getPrecioNocheAplicado();
         BigDecimal total = cambiaEstancia ? calcularTotal(tarifa, periodo.noches()) : reservacion.getCostoTotal();
-        if (cambiaEstancia) {
-            validarPagosAlEditar(reservacion, total);
-        }
+        boolean cambiaTotal = total.compareTo(reservacion.getCostoTotal()) != 0;
+        BigDecimal pagado = cambiaEstancia ? validarPagosAlEditar(reservacion, total, cambiaTotal) : BigDecimal.ZERO;
         reservacion.reprogramar(habitacion, entrada, salida, personas, tarifa, total);
+        if (cambiaTotal) {
+            reservacion.actualizarConfirmacion(pagado);
+        }
+        return reservacion.getEstado();
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -213,15 +216,16 @@ public class ReservacionService {
         return total;
     }
 
-    private void validarPagosAlEditar(Reservacion reservacion, BigDecimal total) {
+    private BigDecimal validarPagosAlEditar(Reservacion reservacion, BigDecimal total, boolean cambiaTotal) {
         Long id = reservacion.getIdReservacion();
-        if (total.compareTo(pagos.sumarMontos(id, List.of(EstadoPago.PAGADO))) < 0) {
+        BigDecimal pagado = pagos.sumarMontos(id, List.of(EstadoPago.PAGADO));
+        if (total.compareTo(pagado) < 0) {
             throw new OperacionNoPermitida(null, "El nuevo total no puede ser menor que el importe ya pagado.");
         }
-        if (total.compareTo(reservacion.getCostoTotal()) != 0
-                && pagos.existsByReservacion_IdReservacionAndEstadoIn(id, EstadoPago.EN_TRAMITE)) {
+        if (cambiaTotal && pagos.existsByReservacion_IdReservacionAndEstadoIn(id, EstadoPago.EN_TRAMITE)) {
             throw new OperacionNoPermitida(null, "El total no puede cambiar mientras haya un pago pendiente o en proceso.");
         }
+        return pagado;
     }
 
     private void exigirEstadoEditable(Reservacion reservacion) {

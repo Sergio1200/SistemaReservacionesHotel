@@ -2,6 +2,7 @@ package com.hotel.reservacioneshotel.controller;
 
 import java.time.LocalDate;
 
+import com.hotel.reservacioneshotel.domain.reservaciones.EstadoReservacion;
 import com.hotel.reservacioneshotel.service.DisponibilidadService;
 import com.hotel.reservacioneshotel.service.DisponibilidadService.PeriodoInvalido;
 import com.hotel.reservacioneshotel.service.ReservacionService;
@@ -96,9 +97,11 @@ public class ReservacionController {
         Operador operador = operador(solicitud);
         if (!errores.hasErrors()) {
             try {
-                reservaciones.actualizar(operador, id, formulario.huespedId(), formulario.habitacionId(),
+                EstadoReservacion estado = reservaciones.actualizar(operador, id, formulario.huespedId(), formulario.habitacionId(),
                         formulario.entrada(), formulario.salida(), formulario.personas());
-                redireccion.addFlashAttribute("mensajeExito", "La reservación se actualizó.");
+                redireccion.addFlashAttribute("mensajeExito", estado == EstadoReservacion.PENDIENTE
+                        ? "La reservación se actualizó. Está pendiente hasta cubrir el saldo."
+                        : "La reservación se actualizó.");
                 return "redirect:/reservaciones/{id}";
             } catch (PeriodoInvalido exception) {
                 errores.rejectValue(exception.getCampo(), "reservacion.periodo", exception.getMessage());

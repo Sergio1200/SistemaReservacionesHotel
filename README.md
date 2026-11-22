@@ -142,6 +142,21 @@ Para ejecutar la integración contra MySQL, configura las variables de conexión
 .\mvnw.cmd "-Dtest=EstanciaMvcTests,EstanciaConcurrenciaMySqlTests,PagoMvcTests,PagoConcurrenciaMySqlTests,ReservacionMvcTests,ReservacionConcurrenciaMySqlTests,DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
+### Revisión integral de la etapa 11
+
+Se comprobaron registro, autenticación y cierre de sesión, permisos, CRUD de huéspedes, habitaciones y tipos, disponibilidad, reservaciones, pagos simulados, check-in y check-out.
+
+| Ejecución con Java 21 | Aprobadas | Fallidas o con error | Omitidas |
+| --- | ---: | ---: | ---: |
+| `mvnw.cmd clean verify` con H2 | 181 | 0 | 16 |
+| Integración con MySQL 8.0.46 aislado | 177 | 0 | 0 |
+
+Las 16 pruebas omitidas por H2 son de concurrencia y se aprobaron en MySQL. Se aplicaron V1, V2, V3 y V4 en orden con datos ficticios ya presentes en V1. Se verificaron la conservación del historial, seis claves foráneas y la correspondencia del esquema con JPA.
+
+En Edge se completó el flujo de administración, huésped y recepción. La prueba consultó fechas futuras y abrió una estancia ficticia para el día local del hotel, con el fin de completar sus entradas y salidas usando la validación habitual. Se revisaron 19 vistas o estados a cada ancho de 1440, 768, 390 y 320 px. La [matriz de pruebas](docs/pruebas/matriz_pruebas.md) enlaza las capturas y las pruebas automatizadas. La [revisión de requerimientos](docs/pruebas/cumplimiento_requerimientos.md) identifica los RF01–RF14 y sus diferencias con el UML original.
+
+Se corrigió la confirmación al reprogramar una reservación cuyo nuevo total ya no queda cubierto. Los errores HTTP generales ahora muestran explicaciones en español y las respuestas públicas omiten detalles internos. La revisión cubre los flujos funcionales con datos de prueba. Queda pendiente medir rendimiento bajo carga y revisar los registros históricos con saldos inconsistentes o sin hora de entrada.
+
 ## Registro y sesión
 
 1. Abre `/registro`. Introduce nombre completo, correo, teléfono y una contraseña de al menos ocho caracteres y como máximo 72 bytes en UTF-8. Confirma la contraseña y pulsa **Crear cuenta**.
@@ -253,13 +268,13 @@ Las operaciones POST requieren CSRF. El servidor comprueba la titularidad en cad
 
 El alta y la edición validan de 1 a 365 noches, la fecha de entrada a partir de hoy, el orden de las fechas, el número de personas, la capacidad y los conflictos. La edición excluye la propia reservación del solapamiento y conserva al titular. Si cambian las fechas o la habitación, se acuerda una nueva tarifa con el precio vigente y se calcula el total con `BigDecimal`. Cambiar únicamente el número de personas conserva la tarifa y el total acordados. Los cambios en el inventario por sí solos conservan los importes ya guardados de las reservaciones. La cancelación conserva el registro, las relaciones y los pagos existentes y libera el intervalo para nuevas búsquedas.
 
-Al recalcular, el total debe cubrir la suma de los pagos `PAGADO`. Un pago `PENDIENTE` o `PROCESANDO` impide cambiar el total. La edición y la cancelación conservan los importes y estados de cada pago.
+Al recalcular, el total debe cubrir la suma de los pagos `PAGADO`. Un pago `PENDIENTE` o `PROCESANDO` impide cambiar el total. Si el nuevo total queda por encima de lo aprobado, la reservación queda `PENDIENTE` y requiere cubrir la diferencia antes del check-in. Si el pago aprobado ya cubre el nuevo total, queda `CONFIRMADA`. La edición y la cancelación conservan los importes y estados de cada pago.
 
 ### Concurrencia
 
 `ReservacionService` ejecuta las escrituras con `READ_COMMITTED`. Una edición o cancelación bloquea primero su fila de reservación. El alta bloquea la habitación con `PESSIMISTIC_WRITE`. Una edición que cambia de habitación bloquea ambas filas por ID ascendente. Con el bloqueo adquirido, la consulta JPA reutiliza las reglas de disponibilidad en una lectura que ve las transacciones ya confirmadas. La capacidad del tipo se protege con un bloqueo compartido. El bloqueo de habitación se conserva hasta que termine la transacción, por lo que el segundo intento superpuesto vuelve a consultar tras el primero y se rechaza si este guardó la reservación. [Aislamiento de transacciones de InnoDB](https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html)
 
-Las pruebas MySQL envían solicitudes desde hilos y transacciones independientes. Cubren dos altas superpuestas, dos altas consecutivas en la misma habitación, dos altas en habitaciones distintas del mismo tipo y dos ediciones que intercambian habitaciones. Estas operaciones usan el esquema de V1 y V2.
+Las pruebas MySQL envían solicitudes desde hilos y transacciones independientes. Cubren dos altas superpuestas, dos altas consecutivas en la misma habitación, dos altas en habitaciones distintas del mismo tipo y dos ediciones que intercambian habitaciones. Se ejecutan con las cuatro migraciones vigentes.
 
 ## Pagos simulados
 
@@ -301,7 +316,7 @@ Las pruebas de MySQL 8.0.46 incluyen dos entradas para la misma reservación, do
 
 ### Ajustes al UML
 
-El diagrama de clases de reservaciones puede incorporar `fechaHoraCheckIn` y `fechaHoraCheckOut` como atributos opcionales de tipo `LocalDateTime`. Los diagramas de secuencia de entrada y salida pueden identificar a `EstanciaService`, la transacción que bloquea reservación y habitación, y la condición de liberar la habitación cuando no quede otra estancia activa. Los diagramas de estados siguen representando las mismas transiciones.
+El diagrama de clases de reservaciones puede incorporar `fechaHoraCheckIn` y `fechaHoraCheckOut` como atributos opcionales de tipo `LocalDateTime`. Los diagramas de secuencia de entrada y salida pueden identificar a `EstanciaService`, la transacción que bloquea reservación y habitación, y la condición de liberar la habitación cuando no quede otra estancia activa. El diagrama de estados de la reservación debe reflejar el regreso a `PENDIENTE` si una reprogramación deja saldo por cubrir.
 
 ## Vistas del portal
 

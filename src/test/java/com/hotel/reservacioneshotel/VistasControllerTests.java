@@ -14,6 +14,8 @@ import com.hotel.reservacioneshotel.controller.PagoController;
 import com.hotel.reservacioneshotel.controller.ReservacionController;
 import com.hotel.reservacioneshotel.controller.TipoHabitacionController;
 import com.hotel.reservacioneshotel.controller.VistasController;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -26,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -48,6 +51,22 @@ class VistasControllerTests {
 
     @Autowired
     private MockMvc mvc;
+
+    @Test
+    void paginaDeErrorConservaElEstadoYOcultaDetallesTecnicos() throws Exception {
+        mvc.perform(get("/error").accept(MediaType.TEXT_HTML)
+                        .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 400)
+                        .requestAttr(RequestDispatcher.ERROR_MESSAGE, "Detalle privado de prueba")
+                        .requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/ruta-de-prueba")
+                        .with(solicitud -> {
+                            solicitud.setDispatcherType(DispatcherType.ERROR);
+                            return solicitud;
+                        }))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Revisa los datos de la solicitud")))
+                .andExpect(content().string(not(containsString("Detalle privado de prueba"))))
+                .andExpect(content().string(not(containsString("/ruta-de-prueba"))));
+    }
 
     @ParameterizedTest
     @CsvSource({

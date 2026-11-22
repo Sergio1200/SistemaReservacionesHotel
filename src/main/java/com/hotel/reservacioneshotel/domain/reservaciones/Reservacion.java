@@ -143,9 +143,9 @@ public class Reservacion {
         estado = EstadoReservacion.CANCELADA;
     }
 
-    public void confirmarPagoCompleto() {
-        if (estado == EstadoReservacion.PENDIENTE) {
-            estado = EstadoReservacion.CONFIRMADA;
+    public void actualizarConfirmacion(BigDecimal totalPagado) {
+        if (estado.permiteCambios()) {
+            estado = totalPagado.compareTo(costoTotal) >= 0 ? EstadoReservacion.CONFIRMADA : EstadoReservacion.PENDIENTE;
         }
     }
 
