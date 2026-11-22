@@ -1,6 +1,6 @@
 # ReservacionesHotel
 
-Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación por correo, gestión de huéspedes para recepción e inventario de habitaciones para administración.
+Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación, gestión de huéspedes e inventario, consulta pública de disponibilidad y reservaciones para huéspedes y recepción.
 
 ## Autor y contexto académico
 
@@ -107,7 +107,7 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 ### Reglas de datos
 
 - La fecha de salida debe ser posterior a la entrada. El intervalo de ocupación es `[entrada, salida)`, así que una salida y otra entrada pueden coincidir el mismo día.
-- La consulta pública comprueba las reservaciones activas del intervalo. Al implementar el alta y los cambios de reservación, se volverá a comprobar el solapamiento antes de guardar, con protección frente a solicitudes simultáneas.
+- La consulta pública comprueba las reservaciones activas del intervalo. El alta y la edición vuelven a comprobar el solapamiento dentro de la transacción después de bloquear las habitaciones.
 - La reservación conserva el precio por noche aplicado y el costo total. Los importes se representan con `BigDecimal` y se almacenan como `DECIMAL(12, 2)`. El esquema exige importes de reservación y habitación no negativos, pagos positivos y capacidad y número de huéspedes mayores que cero.
 - Los pagos serán simulados. Cada reintento conservará el registro anterior y solo los pagos con estado `PAGADO` reducirán el saldo cuando se implemente el cálculo.
 
@@ -132,12 +132,12 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. La suite comprueba el registro público y BCrypt, la sesión, la autorización y CSRF, las rutas del portal y la migración desde V1. `HuespedCrudMvcTests` cubre el directorio de recepción, `InventarioCrudMvcTests` cubre habitaciones y tipos, y `DisponibilidadMvcTests` cubre la consulta pública, las fechas, los estados, la capacidad y el costo estimado.
+`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. Incluye las pruebas anteriores y `ReservacionMvcTests`, que cubre altas, propiedad, permisos, validación, cruces, tarifas, edición, cancelación, persistencia y CSRF. `ReservacionConcurrenciaMySqlTests` se habilita con el perfil MySQL.
 
-Para repetir las pruebas de habitaciones, huéspedes, seguridad y persistencia contra MySQL, configura las variables de conexión de una **instancia de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones y las pruebas revierten sus operaciones de datos al terminar.
+Para ejecutar la integración contra MySQL, configura las variables de conexión de una **instancia aislada de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones. Las pruebas de concurrencia confirman transacciones independientes y retiran sus registros de prueba al finalizar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=ReservacionMvcTests,ReservacionConcurrenciaMySqlTests,DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
 ## Registro y sesión
@@ -174,8 +174,8 @@ En NetBeans puedes ejecutar el mismo objetivo Maven con `-Dspring-boot.run.profi
 | --- | --- |
 | Público | `/`, `/login`, `/registro`, `/acerca-de`, `/disponibilidad` y recursos bajo `/css/`, `/js/` e `/img/`. |
 | Cualquier rol autenticado | `/panel` y `POST /logout`. |
-| Huésped | `/reservaciones` y `/reservaciones/nueva`. |
-| Recepcionista | `/huespedes` y sus subrutas, `/reservaciones`, `/reservaciones/nueva`, `/pagos` y `/check-in-check-out`. |
+| Huésped | `/reservaciones` y sus subrutas, con acceso a sus propias reservaciones. |
+| Recepcionista | `/huespedes` y `/reservaciones` con sus subrutas, `/pagos` y `/check-in-check-out`. |
 | Administrador | `/habitaciones`, `/tipos-habitacion` y sus subrutas. |
 
 ## Gestión de huéspedes
@@ -234,7 +234,30 @@ Una estancia incluye sus noches desde la entrada y excluye el día de salida. Ha
 
 Si hay exactamente una estancia `EN_CURSO` que empezó a más tardar hoy y cuya salida es hoy o posterior, la habitación puede aparecer a partir de esa salida, incluso cuando su estado operativo es `OCUPADA`. Los solapamientos con otras reservas activas siguen bloqueándola. Una habitación ocupada sin estancia en curso queda fuera de la oferta. Una estancia vencida, futura o duplicada marcada como `EN_CURSO` también deja la habitación fuera hasta aclarar su estado.
 
-`DisponibilidadService` calcula las noches como diferencia entre las dos fechas y multiplica la tarifa vigente por ese número con `BigDecimal`. Tres noches a 850.75 MXN dan un estimado de 2,552.25 MXN. La consulta es de solo lectura y muestra únicamente datos de inventario y el estimado. La confirmación, el guardado de la tarifa y la comprobación concurrente del cupo quedan para la etapa 8.
+`DisponibilidadService` calcula las noches como diferencia entre las dos fechas y multiplica la tarifa vigente por ese número con `BigDecimal`. Tres noches a 850.75 MXN dan un estimado de 2,552.25 MXN. La consulta es de solo lectura. Se puede iniciar una reservación desde un resultado y el sistema vuelve a verificar la habitación y la tarifa al guardar.
+
+## Gestión de reservaciones
+
+| Método y ruta | Operación |
+| --- | --- |
+| `GET /reservaciones` | Lista las reservaciones propias del huésped. Recepción puede verlas todas y buscar con `q` por número, nombre o correo del huésped. |
+| `GET /reservaciones/nueva` | Abre el formulario. Puede recibir habitación, fechas y número de personas desde Disponibilidad. |
+| `POST /reservaciones/nueva` | Registra la reservación como `PENDIENTE`. Recepción selecciona una ficha existente y el huésped autenticado reserva para sí mismo. |
+| `GET /reservaciones/{id}` | Muestra habitación, tipo, fechas, noches, personas, tarifa, total y estado. |
+| `GET` y `POST /reservaciones/{id}/editar` | Abren el formulario y guardan los cambios de una reservación pendiente o confirmada. |
+| `GET` y `POST /reservaciones/{id}/cancelar` | Muestran la confirmación y cambian a `CANCELADA` una reservación pendiente o confirmada. |
+
+Las operaciones POST requieren CSRF. El servidor comprueba la titularidad en cada operación y responde HTTP 403 ante un acceso ajeno y HTTP 404 ante un identificador inexistente. El usuario sin sesión que abre el formulario se dirige a Iniciar sesión. Los administradores conservan el inventario y los tipos de habitación.
+
+El alta y la edición validan de 1 a 365 noches, la fecha de entrada a partir de hoy, el orden de las fechas, el número de personas, la capacidad y los conflictos. La edición excluye la propia reservación del solapamiento y conserva al titular. Si cambian las fechas o la habitación, se acuerda una nueva tarifa con el precio vigente y se calcula el total con `BigDecimal`. Cambiar únicamente el número de personas conserva la tarifa y el total acordados. Los cambios en el inventario por sí solos conservan los importes ya guardados de las reservaciones. La cancelación conserva el registro, las relaciones y los pagos existentes y libera el intervalo para nuevas búsquedas.
+
+Al recalcular, el total debe cubrir la suma de los pagos `PAGADO`. Un pago `PENDIENTE` o `PROCESANDO` impide cambiar el total. Los pagos `RECHAZADO` quedan en el historial y no cuentan como importe cobrado. La edición y la cancelación conservan los importes y estados de cada pago. La etapa 9 queda a cargo de los saldos, la conciliación y los posibles reembolsos de reservaciones canceladas. Las futuras operaciones de pago deberán adquirir primero el mismo bloqueo de la reservación que usa la edición.
+
+### Concurrencia
+
+`ReservacionService` ejecuta las escrituras con `READ_COMMITTED`. Una edición o cancelación bloquea primero su fila de reservación. El alta bloquea la habitación con `PESSIMISTIC_WRITE`. Una edición que cambia de habitación bloquea ambas filas por ID ascendente. Con el bloqueo adquirido, la consulta JPA reutiliza las reglas de disponibilidad en una lectura que ve las transacciones ya confirmadas. La capacidad del tipo se protege con un bloqueo compartido. El bloqueo de habitación se conserva hasta que termine la transacción, por lo que el segundo intento superpuesto vuelve a consultar tras el primero y se rechaza si este guardó la reservación. [Aislamiento de transacciones de InnoDB](https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html)
+
+Las pruebas MySQL envían solicitudes desde hilos y transacciones independientes. Cubren dos altas superpuestas, dos altas consecutivas en la misma habitación, dos altas en habitaciones distintas del mismo tipo y dos ediciones que intercambian habitaciones. Estas operaciones usan el esquema de V1 y V2.
 
 ## Vistas del portal
 
@@ -249,12 +272,12 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/habitaciones` | Inventario de MySQL con búsqueda, filtro, alta, edición y eliminación controlada. |
 | `/tipos-habitacion` | Catálogo de MySQL con alta, edición y eliminación controlada. |
 | `/disponibilidad` | Consulta pública por fechas y capacidad, con costo estimado en MXN. |
-| `/reservaciones/nueva` | Selección de huésped, habitación y fechas de estancia. |
-| `/reservaciones` | Tabla de reservaciones con huésped, fechas, habitación y estado. |
+| `/reservaciones/nueva` | Alta funcional para huéspedes y recepción. |
+| `/reservaciones` | Listado con consulta de detalle, edición y cancelación. |
 | `/pagos` | Historial de ejemplo y formulario para un futuro pago simulado. |
 | `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-Quedan pendientes la creación de reservaciones con comprobación concurrente en la etapa 8, los cambios y cancelaciones, los pagos, el check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
+Quedan pendientes la confirmación y los pagos, el check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

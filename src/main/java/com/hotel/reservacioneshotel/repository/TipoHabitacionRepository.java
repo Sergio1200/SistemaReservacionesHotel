@@ -15,6 +15,10 @@ public interface TipoHabitacionRepository extends JpaRepository<TipoHabitacion, 
     @Query("select t from TipoHabitacion t where t.idTipo = :id")
     Optional<TipoHabitacion> buscarParaActualizar(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query("select t from TipoHabitacion t where t.idTipo = :id")
+    Optional<TipoHabitacion> buscarParaReservar(@Param("id") Long id);
+
     @Query("""
             select count(t) > 0 from TipoHabitacion t
             where lower(trim(t.nombre)) = lower(:nombre) and (:id is null or t.idTipo <> :id)

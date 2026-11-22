@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina(${tituloError}, '/reservaciones', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-error">
+            <header class="page-heading">
+                <h1 id="titulo-error" th:text="${tituloError}"></h1>
+                <p th:text="${mensajeError}"></p>
+            </header>
+            <a class="text-link" th:href="@{/reservaciones}">Volver al listado</a>
+        </section>
+    </main>
+</body>
+</html>

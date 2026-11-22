@@ -113,4 +113,18 @@ public class Reservacion {
     public EstadoReservacion getEstado() {
         return estado;
     }
+
+    public void reprogramar(Habitacion habitacion, LocalDate entrada, LocalDate salida, int personas,
+                             BigDecimal tarifa, BigDecimal total) {
+        this.habitacion = habitacion;
+        this.fechaEntrada = entrada;
+        this.fechaSalida = salida;
+        this.numeroHuespedes = personas;
+        this.precioNocheAplicado = tarifa;
+        this.costoTotal = total;
+    }
+
+    public void cancelar() {
+        estado = EstadoReservacion.CANCELADA;
+    }
 }

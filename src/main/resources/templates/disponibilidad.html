@@ -54,6 +54,9 @@
                             <dt class="disponibilidad-total">Costo estimado</dt>
                             <dd class="disponibilidad-total" th:text="${#numbers.formatDecimal(habitacion.costoEstimado, 1, 2)}"></dd>
                         </dl>
+                        <a class="btn btn-outline-primary mt-3" th:if="${sesion.reservas or !sesion.autenticada}"
+                           th:href="@{/reservaciones/nueva(habitacionId=${habitacion.id},entrada=${disponibilidadForm.entrada},salida=${disponibilidadForm.salida},personas=${disponibilidadForm.huespedes})}"
+                           th:text="${sesion.autenticada ? 'Reservar' : 'Iniciar sesión para reservar'}"></a>
                     </article>
                 </div>
             </div>

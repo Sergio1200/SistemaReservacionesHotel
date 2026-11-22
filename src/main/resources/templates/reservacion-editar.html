@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Editar reservación', '/reservaciones', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-editar">
+            <header class="page-heading">
+                <h1 id="titulo-editar">Editar reservación</h1>
+                <p th:text="|Reservación #${reservacion.id} · ${reservacion.titular}|"></p>
+            </header>
+            <p class="alert alert-warning" role="alert" th:unless="${reservacion.estado.permiteCambios()}">
+                Solo se pueden cambiar o cancelar reservaciones pendientes o confirmadas.
+            </p>
+            <form class="form-stack" method="post" th:if="${reservacion.estado.permiteCambios()}"
+                  th:action="@{/reservaciones/{id}/editar(id=${reservacion.id})}" th:object="${reservacionForm}">
+                <th:block th:replace="~{fragmentos/reservacion :: campos}"></th:block>
+                <p class="text-secondary mb-0">Al cambiar las fechas o la habitación se aplicará la tarifa vigente.</p>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                    <a class="text-link" th:href="@{/reservaciones/{id}(id=${reservacion.id})}">Volver al detalle</a>
+                </div>
+            </form>
+            <a class="text-link" th:unless="${reservacion.estado.permiteCambios()}"
+               th:href="@{/reservaciones/{id}(id=${reservacion.id})}">Volver al detalle</a>
+        </section>
+    </main>
+</body>
+</html>

@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import com.hotel.reservacioneshotel.controller.HabitacionController;
 import com.hotel.reservacioneshotel.controller.DisponibilidadController;
 import com.hotel.reservacioneshotel.controller.HuespedController;
+import com.hotel.reservacioneshotel.controller.ReservacionController;
 import com.hotel.reservacioneshotel.controller.TipoHabitacionController;
 import com.hotel.reservacioneshotel.controller.VistasController;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,7 @@ class VistasControllerTests {
             case "/habitaciones" -> HabitacionController.class;
             case "/tipos-habitacion" -> TipoHabitacionController.class;
             case "/disponibilidad" -> DisponibilidadController.class;
+            case "/reservaciones", "/reservaciones/nueva" -> ReservacionController.class;
             default -> VistasController.class;
         };
         mvc.perform(peticionVista(ruta))
@@ -141,7 +143,7 @@ class VistasControllerTests {
     @Test
     void losFormulariosNoAceptanEnvios() throws Exception {
         for (String ruta : List.of("/disponibilidad",
-                "/reservaciones/nueva", "/pagos")) {
+                "/pagos")) {
             mvc.perform(conAcceso(post(ruta), ruta).with(csrf())).andExpect(status().isMethodNotAllowed());
         }
     }

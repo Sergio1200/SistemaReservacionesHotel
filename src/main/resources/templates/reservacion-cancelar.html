@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Cancelar reservación', '/reservaciones', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-cancelar">
+            <header class="page-heading">
+                <h1 id="titulo-cancelar">Cancelar reservación</h1>
+                <p th:text="|Reservación #${reservacion.id} · Habitación ${reservacion.habitacion}|"></p>
+            </header>
+            <p class="alert alert-warning" role="alert" th:unless="${reservacion.estado.permiteCambios()}">
+                Solo se pueden cambiar o cancelar reservaciones pendientes o confirmadas.
+            </p>
+            <form class="form-stack" method="post" th:if="${reservacion.estado.permiteCambios()}"
+                  th:action="@{/reservaciones/{id}/cancelar(id=${reservacion.id})}">
+                <p class="mb-0">Al cancelar se liberarán las fechas y se conservará el registro en tu historial.</p>
+                <div class="form-actions">
+                    <button class="btn btn-danger" type="submit">Confirmar cancelación</button>
+                    <a class="text-link" th:href="@{/reservaciones/{id}(id=${reservacion.id})}">Volver al detalle</a>
+                </div>
+            </form>
+            <a class="text-link" th:unless="${reservacion.estado.permiteCambios()}"
+               th:href="@{/reservaciones/{id}(id=${reservacion.id})}">Volver al detalle</a>
+        </section>
+    </main>
+</body>
+</html>

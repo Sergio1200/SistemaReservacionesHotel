@@ -6,6 +6,22 @@ El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del C
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
 
+## Capturas de la etapa 8
+
+Se probó en Edge a 1440 y 390 píxeles con MySQL 8.0.46 aislado. La búsqueda pública conservó la selección después de iniciar sesión. Se crearon reservaciones como huésped y como recepcionista, se consultó y filtró el listado, y se cambiaron fechas y habitación. Al cancelar, la habitación volvió a aparecer en Disponibilidad. Los datos son ficticios y las capturas terminan antes del pie académico.
+
+| Flujo | Captura |
+| --- | --- |
+| Alta para la propia cuenta | [Huésped](capturas/etapa-8/alta-huesped.png) |
+| Alta para una ficha existente | [Recepción](capturas/etapa-8/alta-recepcion.png) |
+| Consulta de reservaciones | [Listado de recepción](capturas/etapa-8/listado.png) |
+| Cambio de fechas y habitación | [Detalle actualizado](capturas/etapa-8/edicion.png) |
+| Cancelación | [Resultado en escritorio](capturas/etapa-8/cancelacion.png) · [Detalle en celular](capturas/etapa-8/detalle-390.png) |
+| Solicitud para fechas superpuestas | [Conflicto de disponibilidad](capturas/etapa-8/conflicto.png) |
+| Acceso directo a una reservación ajena | [HTTP 403](capturas/etapa-8/acceso-denegado.png) |
+
+Las pruebas de concurrencia se ejecutaron en paralelo contra MySQL. De dos altas superpuestas se guardó una. Los dos intervalos consecutivos en una misma habitación se guardaron. Una solicitud para otra habitación del mismo tipo terminó mientras la primera estaba bloqueada. Las dos ediciones que intercambiaron habitaciones con fechas consecutivas también se guardaron.
+
 ## Capturas de la etapa 7
 
 La búsqueda se probó sin iniciar sesión, en Edge a 1440 y 390 píxeles y con una instancia aislada de MySQL 8.0.46. Las habitaciones y las reservaciones eran ficticias. Las capturas terminan antes del pie académico.

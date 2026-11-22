@@ -28,8 +28,10 @@ public interface HabitacionRepository extends JpaRepository<Habitacion, Long> {
     @Query("""
             select h from Habitacion h join fetch h.tipoHabitacion t
             where t.capacidad >= :huespedes
+              and (:idHabitacion is null or h.idHabitacion = :idHabitacion)
               and not exists (
                   select 1 from Reservacion r where r.habitacion = h and r.estado in :estadosQueBloquean
+                      and (:excluirId is null or r.idReservacion <> :excluirId)
                       and r.fechaEntrada < :salida and r.fechaSalida > :entrada
               )
               and (
@@ -50,7 +52,8 @@ public interface HabitacionRepository extends JpaRepository<Habitacion, Long> {
                                      @Param("huespedes") int huespedes, @Param("hoy") LocalDate hoy,
                                      @Param("disponible") EstadoHabitacion disponible,
                                      @Param("enCurso") EstadoReservacion enCurso,
-                                     @Param("estadosQueBloquean") Collection<EstadoReservacion> estadosQueBloquean);
+                                     @Param("estadosQueBloquean") Collection<EstadoReservacion> estadosQueBloquean,
+                                     @Param("idHabitacion") Long idHabitacion, @Param("excluirId") Long excluirId);
 
     @EntityGraph(attributePaths = "tipoHabitacion")
     Optional<Habitacion> findOneByIdHabitacion(Long id);

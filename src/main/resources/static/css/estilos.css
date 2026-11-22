@@ -542,6 +542,16 @@ a:focus-visible, button:focus-visible, [tabindex="0"]:focus-visible {
 .habitacion-disponible dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 .disponibilidad-total { padding-top: 0.55rem; border-top: 1px solid var(--hotel-border); font-weight: 700; }
 
+.tabla-reservaciones { min-width: 44rem; }
+.datos-reservacion {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.55rem 0.8rem;
+    margin: 0;
+}
+.datos-reservacion dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.status-neutral { color: var(--hotel-muted); background: var(--hotel-bg); }
+
 .status { display: inline-block; padding: 0.22rem 0.52rem; border-radius: 0.38rem; font-size: 0.875rem; font-weight: 650; }
 .status-green { background: #e5f5ed; color: #1e6347; }
 .status-blue { background: #e8f0fc; color: #275386; }

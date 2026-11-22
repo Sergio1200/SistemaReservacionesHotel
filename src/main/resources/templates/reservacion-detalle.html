@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Detalle de reservación', '/reservaciones', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-reservacion">
+            <header class="page-heading">
+                <h1 id="titulo-reservacion" th:text="|Reservación #${reservacion.id}|"></h1>
+                <span th:replace="~{fragmentos/reservacion :: estado(${reservacion.estado})}"></span>
+            </header>
+            <p class="alert alert-success" role="status" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+            <p class="alert alert-warning" role="alert" th:if="${mensajeError}" th:text="${mensajeError}"></p>
+            <dl class="datos-reservacion">
+                <dt>Huésped titular</dt><dd th:text="${reservacion.titular}"></dd>
+                <dt>Habitación</dt><dd th:text="|${reservacion.habitacion} · ${reservacion.tipo}|"></dd>
+                <dt>Entrada</dt><dd><time th:datetime="${reservacion.entrada}" th:text="${#temporals.format(reservacion.entrada, 'dd/MM/yyyy')}"></time></dd>
+                <dt>Salida</dt><dd><time th:datetime="${reservacion.salida}" th:text="${#temporals.format(reservacion.salida, 'dd/MM/yyyy')}"></time></dd>
+                <dt>Noches</dt><dd th:text="${reservacion.noches}"></dd>
+                <dt>Número de huéspedes</dt><dd th:text="${reservacion.personas}"></dd>
+                <dt>Precio acordado por noche</dt><dd th:text="|${#numbers.formatDecimal(reservacion.tarifa, 1, 2)} MXN|"></dd>
+                <dt class="disponibilidad-total">Costo total</dt>
+                <dd class="disponibilidad-total" th:text="|${#numbers.formatDecimal(reservacion.total, 1, 2)} MXN|"></dd>
+            </dl>
+            <div class="form-actions mt-3">
+                <th:block th:if="${reservacion.estado.permiteCambios()}">
+                    <a class="btn btn-primary" th:href="@{/reservaciones/{id}/editar(id=${reservacion.id})}">Editar reservación</a>
+                    <a class="btn btn-outline-danger" th:href="@{/reservaciones/{id}/cancelar(id=${reservacion.id})}">Cancelar reservación</a>
+                </th:block>
+                <a class="text-link" th:href="@{/reservaciones}">Volver al listado</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

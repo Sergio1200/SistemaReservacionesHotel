@@ -30,4 +30,8 @@ public interface HuespedRepository extends JpaRepository<Huesped, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select h from Huesped h where h.idHuesped = :id")
     Optional<Huesped> buscarParaActualizar(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query("select h from Huesped h where h.idHuesped = :id")
+    Optional<Huesped> buscarParaReservar(@Param("id") Long id);
 }

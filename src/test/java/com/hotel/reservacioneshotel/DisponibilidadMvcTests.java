@@ -67,8 +67,8 @@ class DisponibilidadMvcTests {
 
     @Test
     void ofreceHabitacionesLibresYCalculaNochesYCostoSinRedondeos() throws Exception {
-        habitacion("QA-201", 2, EstadoHabitacion.DISPONIBLE);
-        habitacion("QA-101", 2, EstadoHabitacion.DISPONIBLE);
+        Habitacion segunda = habitacion("QA-201", 2, EstadoHabitacion.DISPONIBLE);
+        Habitacion primera = habitacion("QA-101", 2, EstadoHabitacion.DISPONIBLE);
         String entrada = hoy.plusDays(3).toString();
         String salida = hoy.plusDays(6).toString();
 
@@ -81,8 +81,8 @@ class DisponibilidadMvcTests {
                 .andReturn();
         assertThat(respuesta.getModelAndView().getModel().get("resultados"))
                 .asList().containsExactly(
-                        new HabitacionDisponible("QA-101", "Tipo QA-101", 2, TARIFA, 3, new BigDecimal("2552.25")),
-                        new HabitacionDisponible("QA-201", "Tipo QA-201", 2, TARIFA, 3, new BigDecimal("2552.25")));
+                        new HabitacionDisponible(primera.getIdHabitacion(), "QA-101", "Tipo QA-101", 2, TARIFA, 3, new BigDecimal("2552.25")),
+                        new HabitacionDisponible(segunda.getIdHabitacion(), "QA-201", "Tipo QA-201", 2, TARIFA, 3, new BigDecimal("2552.25")));
     }
 
     @ParameterizedTest

@@ -11,17 +11,37 @@
             <a class="btn btn-primary" th:href="@{/reservaciones/nueva}">Nueva reservación</a>
         </header>
         <section class="surface" aria-labelledby="listado-reservaciones">
-            <div class="surface-heading">
-                <h2 id="listado-reservaciones">Listado de reservaciones</h2>
-                <span class="sample-label">Registros de ejemplo</span>
-            </div>
-            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de reservaciones de ejemplo">
-                <table class="table data-table">
-                    <thead><tr><th scope="col">Reservación</th><th scope="col">Huésped</th><th scope="col">Entrada</th><th scope="col">Salida</th><th scope="col">Habitación</th><th scope="col">Estado</th></tr></thead>
+            <div class="surface-heading"><h2 id="listado-reservaciones" th:text="${sesion.recepcion ? 'Listado de reservaciones' : 'Mis reservaciones'}"></h2></div>
+            <form class="busqueda-huespedes" th:if="${sesion.recepcion}" method="get" th:action="@{/reservaciones}" role="search">
+                <label class="form-label" for="buscar-reservacion">Buscar por número, nombre o correo del huésped</label>
+                <div class="busqueda-huespedes-campos">
+                    <input class="form-control" id="buscar-reservacion" type="search" name="q" th:value="${q}" maxlength="254">
+                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                    <a class="text-link" th:if="${!q.isEmpty()}" th:href="@{/reservaciones}">Limpiar</a>
+                </div>
+            </form>
+            <p class="table-note mb-0" th:if="${#lists.isEmpty(reservaciones)}"
+               th:text="${q.isEmpty() ? 'Aún no hay reservaciones.' : 'No hay reservaciones que coincidan con la búsqueda.'}"></p>
+            <div class="table-responsive" tabindex="0" role="region" aria-labelledby="listado-reservaciones"
+                 th:unless="${#lists.isEmpty(reservaciones)}">
+                <table class="table data-table tabla-reservaciones">
+                    <thead>
+                        <tr><th scope="col">Reservación</th><th scope="col" th:if="${sesion.recepcion}">Huésped</th>
+                            <th scope="col">Habitación</th><th scope="col">Entrada</th><th scope="col">Salida</th>
+                            <th scope="col">Personas</th><th scope="col">Total (MXN)</th><th scope="col">Estado</th></tr>
+                    </thead>
                     <tbody>
-                        <tr><th scope="row">R-0101</th><td>Huésped Alfa</td><td><time datetime="2027-02-12">12 feb 2027</time></td><td><time datetime="2027-02-14">14 feb 2027</time></td><td>202 · Doble</td><td><span class="status status-blue">Confirmada</span></td></tr>
-                        <tr><th scope="row">R-0102</th><td>Huésped Beta</td><td><time datetime="2027-02-11">11 feb 2027</time></td><td><time datetime="2027-02-13">13 feb 2027</time></td><td>101 · Individual</td><td><span class="status status-green">En curso</span></td></tr>
-                        <tr><th scope="row">R-0103</th><td>Huésped Gamma</td><td><time datetime="2027-02-16">16 feb 2027</time></td><td><time datetime="2027-02-18">18 feb 2027</time></td><td>301 · Suite</td><td><span class="status status-amber">Pendiente</span></td></tr>
+                        <tr th:each="r : ${reservaciones}">
+                            <th scope="row"><a class="text-link" th:href="@{/reservaciones/{id}(id=${r.id})}"
+                                               th:text="|#${r.id}|" th:aria-label="|Ver reservación ${r.id}|"></a></th>
+                            <td th:if="${sesion.recepcion}" class="texto-inventario" th:text="${r.titular}"></td>
+                            <td th:text="|${r.habitacion} · ${r.tipo}|"></td>
+                            <td><time th:datetime="${r.entrada}" th:text="${#temporals.format(r.entrada, 'dd/MM/yyyy')}"></time></td>
+                            <td><time th:datetime="${r.salida}" th:text="${#temporals.format(r.salida, 'dd/MM/yyyy')}"></time></td>
+                            <td th:text="${r.personas}"></td>
+                            <td th:text="${#numbers.formatDecimal(r.total, 1, 2)}"></td>
+                            <td><span th:replace="~{fragmentos/reservacion :: estado(${r.estado})}"></span></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
