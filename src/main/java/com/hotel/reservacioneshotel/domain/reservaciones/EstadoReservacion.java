@@ -24,4 +24,8 @@ public enum EstadoReservacion {
     public boolean permiteCambios() {
         return this == PENDIENTE || this == CONFIRMADA;
     }
+
+    public boolean admitePagos() {
+        return permiteCambios() || this == EN_CURSO;
+    }
 }

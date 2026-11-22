@@ -104,12 +104,14 @@ Las asociaciones se mapean desde el lado que tiene la clave foránea. La herenci
 
 V2 reserva los correos históricos de huéspedes que sean únicos al normalizarlos y conserva sus fichas. Esas cuentas no tienen contraseña hasta verificar su titularidad. Los empleados existentes conservan su usuario y hash. Un empleado sin cuenta vinculada necesita que la administración le asigne un correo verificado antes de iniciar sesión.
 
+[La migración V3](src/main/resources/db/migration/V3__identificar_intentos_de_pago.sql) añade una clave de intento opcional a `pagos` y la hace única dentro de cada reservación. Los reenvíos conservan el intento original incluso después de reiniciar la aplicación. Los pagos previos conservan sus datos y quedan con clave nula.
+
 ### Reglas de datos
 
 - La fecha de salida debe ser posterior a la entrada. El intervalo de ocupación es `[entrada, salida)`, así que una salida y otra entrada pueden coincidir el mismo día.
 - La consulta pública comprueba las reservaciones activas del intervalo. El alta y la edición vuelven a comprobar el solapamiento dentro de la transacción después de bloquear las habitaciones.
 - La reservación conserva el precio por noche aplicado y el costo total. Los importes se representan con `BigDecimal` y se almacenan como `DECIMAL(12, 2)`. El esquema exige importes de reservación y habitación no negativos, pagos positivos y capacidad y número de huéspedes mayores que cero.
-- Los pagos serán simulados. Cada reintento conservará el registro anterior y solo los pagos con estado `PAGADO` reducirán el saldo cuando se implemente el cálculo.
+- Los pagos son simulados. Cada intento nuevo conserva el historial y solo los pagos con estado `PAGADO` reducen el saldo.
 
 ## Verificar las tablas en MySQL Workbench
 
@@ -132,12 +134,12 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web y de persistencia con H2 en memoria. Incluye las pruebas anteriores y `ReservacionMvcTests`, que cubre altas, propiedad, permisos, validación, cruces, tarifas, edición, cancelación, persistencia y CSRF. `ReservacionConcurrenciaMySqlTests` se habilita con el perfil MySQL.
+`clean verify` ejecuta las pruebas web, de persistencia y migración con H2 en memoria. Incluye las pruebas anteriores, `PagoMvcTests` para flujos, validaciones y acceso a pagos y `MigracionPagosTests` para la actualización desde V2. El perfil MySQL habilita `ReservacionConcurrenciaMySqlTests` y `PagoConcurrenciaMySqlTests`.
 
 Para ejecutar la integración contra MySQL, configura las variables de conexión de una **instancia aislada de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones. Las pruebas de concurrencia confirman transacciones independientes y retiran sus registros de prueba al finalizar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=ReservacionMvcTests,ReservacionConcurrenciaMySqlTests,DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=PagoMvcTests,PagoConcurrenciaMySqlTests,ReservacionMvcTests,ReservacionConcurrenciaMySqlTests,DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
 ## Registro y sesión
@@ -251,13 +253,33 @@ Las operaciones POST requieren CSRF. El servidor comprueba la titularidad en cad
 
 El alta y la edición validan de 1 a 365 noches, la fecha de entrada a partir de hoy, el orden de las fechas, el número de personas, la capacidad y los conflictos. La edición excluye la propia reservación del solapamiento y conserva al titular. Si cambian las fechas o la habitación, se acuerda una nueva tarifa con el precio vigente y se calcula el total con `BigDecimal`. Cambiar únicamente el número de personas conserva la tarifa y el total acordados. Los cambios en el inventario por sí solos conservan los importes ya guardados de las reservaciones. La cancelación conserva el registro, las relaciones y los pagos existentes y libera el intervalo para nuevas búsquedas.
 
-Al recalcular, el total debe cubrir la suma de los pagos `PAGADO`. Un pago `PENDIENTE` o `PROCESANDO` impide cambiar el total. Los pagos `RECHAZADO` quedan en el historial y no cuentan como importe cobrado. La edición y la cancelación conservan los importes y estados de cada pago. La etapa 9 queda a cargo de los saldos, la conciliación y los posibles reembolsos de reservaciones canceladas. Las futuras operaciones de pago deberán adquirir primero el mismo bloqueo de la reservación que usa la edición.
+Al recalcular, el total debe cubrir la suma de los pagos `PAGADO`. Un pago `PENDIENTE` o `PROCESANDO` impide cambiar el total. La edición y la cancelación conservan los importes y estados de cada pago.
 
 ### Concurrencia
 
 `ReservacionService` ejecuta las escrituras con `READ_COMMITTED`. Una edición o cancelación bloquea primero su fila de reservación. El alta bloquea la habitación con `PESSIMISTIC_WRITE`. Una edición que cambia de habitación bloquea ambas filas por ID ascendente. Con el bloqueo adquirido, la consulta JPA reutiliza las reglas de disponibilidad en una lectura que ve las transacciones ya confirmadas. La capacidad del tipo se protege con un bloqueo compartido. El bloqueo de habitación se conserva hasta que termine la transacción, por lo que el segundo intento superpuesto vuelve a consultar tras el primero y se rechaza si este guardó la reservación. [Aislamiento de transacciones de InnoDB](https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html)
 
 Las pruebas MySQL envían solicitudes desde hilos y transacciones independientes. Cubren dos altas superpuestas, dos altas consecutivas en la misma habitación, dos altas en habitaciones distintas del mismo tipo y dos ediciones que intercambian habitaciones. Estas operaciones usan el esquema de V1 y V2.
+
+## Pagos simulados
+
+Desde el detalle de una reservación, el huésped titular o recepción puede abrir **Pagos simulados**. Recepción también puede buscar en **Pagos** por identificador, nombre o correo del huésped. El formulario acepta un monto positivo de hasta dos decimales y un método entre efectivo simulado, tarjeta simulada y transferencia simulada. La simulación usa la fecha del servidor y solo solicita el importe y el método.
+
+| Método y ruta | Operación |
+| --- | --- |
+| `GET /pagos` | Busca reservaciones para recepción. |
+| `GET /reservaciones/{id}/pagos` | Muestra el saldo y el historial al titular o a recepción. |
+| `POST /reservaciones/{id}/pagos` | Registra un intento en `PENDIENTE`. |
+| `POST /reservaciones/{id}/pagos/{pagoId}/procesar` | Recepción pasa un intento pendiente a `PROCESANDO`. |
+| `POST /reservaciones/{id}/pagos/{pagoId}/validar` | Recepción elige **Aprobar** o **Rechazar** y registra `PAGADO` o `RECHAZADO`, respectivamente. |
+
+La decisión es manual y académica. Un intento rechazado permanece en el historial y libera su importe para un nuevo intento. El mismo formulario reenviado devuelve el intento original. Los formularios POST requieren CSRF y el servidor comprueba la titularidad y el rol. Las rutas de pagos están reservadas al huésped titular y a recepción según la operación.
+
+Los importes usan `BigDecimal` con dos decimales. **Total pagado** suma únicamente `PAGADO`. **Saldo pendiente** es el costo de la reservación menos ese total. **Disponible para un nuevo intento** descuenta además los importes `PENDIENTE` y `PROCESANDO`. Por ejemplo, con un costo de 850.75 MXN y 300.00 MXN aprobados, quedan 550.75 MXN de saldo. Si hay otro intento de 200.00 MXN en trámite, se pueden registrar hasta 350.75 MXN adicionales.
+
+Un pago parcial conserva el estado de una reservación `PENDIENTE`. Cuando la suma aprobada cubre el costo, esa reservación pasa a `CONFIRMADA`. Los pagos de una estancia `EN_CURSO` conservan el estado de la estancia. Las reservaciones `CANCELADA` y `FINALIZADA` quedan en modo de consulta. Si un registro histórico supera el costo, se muestra un saldo de cero y un aviso para revisión. Una cancelación conserva los pagos y muestra un aviso de posible conciliación o reembolso si hay importes pagados o en trámite. La conciliación y los reembolsos quedan pendientes.
+
+`PagoService` usa transacciones `READ_COMMITTED`. El registro, el procesamiento y la validación adquieren primero el bloqueo de escritura sobre la reservación que usa la edición y la cancelación. Al procesar o validar se bloquea después el pago. La aprobación consulta nuevamente el saldo y los intentos en trámite antes de cambiar el pago y, si corresponde, confirmar la reservación en la misma transacción. Las pruebas de MySQL cubren altas que excederían el saldo, reenvíos y aprobaciones duplicadas, pagos parciales concurrentes, cancelación frente a aprobación y reintento tras agotar una espera de bloqueo.
 
 ## Vistas del portal
 
@@ -274,10 +296,10 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/disponibilidad` | Consulta pública por fechas y capacidad, con costo estimado en MXN. |
 | `/reservaciones/nueva` | Alta funcional para huéspedes y recepción. |
 | `/reservaciones` | Listado con consulta de detalle, edición y cancelación. |
-| `/pagos` | Historial de ejemplo y formulario para un futuro pago simulado. |
+| `/pagos` | Búsqueda de reservaciones y acceso al historial de pagos para recepción. |
 | `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-Quedan pendientes la confirmación y los pagos, el check-in y check-out, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
+Quedan pendientes el check-in y check-out, la conciliación y los reembolsos, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

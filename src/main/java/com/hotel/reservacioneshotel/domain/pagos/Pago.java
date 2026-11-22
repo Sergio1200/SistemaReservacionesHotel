@@ -2,6 +2,7 @@ package com.hotel.reservacioneshotel.domain.pagos;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.hotel.reservacioneshotel.domain.reservaciones.Reservacion;
 import jakarta.persistence.Column;
@@ -45,6 +46,9 @@ public class Pago {
     @Column(nullable = false, length = 16)
     private EstadoPago estado;
 
+    @Column(name = "clave_intento", length = 36, updatable = false)
+    private String claveIntento;
+
     protected Pago() {
     }
 
@@ -55,6 +59,20 @@ public class Pago {
         this.monto = monto;
         this.metodoPago = metodoPago;
         this.estado = estado;
+    }
+
+    public static Pago simulado(Reservacion reservacion, LocalDateTime fecha, BigDecimal monto, MetodoPago metodo, UUID intento) {
+        Pago pago = new Pago(reservacion, fecha, monto, metodo.name(), EstadoPago.PENDIENTE);
+        pago.claveIntento = intento.toString();
+        return pago;
+    }
+
+    public void procesar() {
+        estado = EstadoPago.PROCESANDO;
+    }
+
+    public void finalizar(boolean aprobado) {
+        estado = aprobado ? EstadoPago.PAGADO : EstadoPago.RECHAZADO;
     }
 
     public Long getIdPago() {

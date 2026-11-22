@@ -22,6 +22,7 @@
                 <dd class="disponibilidad-total" th:text="|${#numbers.formatDecimal(reservacion.total, 1, 2)} MXN|"></dd>
             </dl>
             <div class="form-actions mt-3">
+                <a class="btn btn-outline-primary" th:href="@{/reservaciones/{id}/pagos(id=${reservacion.id})}">Pagos simulados</a>
                 <th:block th:if="${reservacion.estado.permiteCambios()}">
                     <a class="btn btn-primary" th:href="@{/reservaciones/{id}/editar(id=${reservacion.id})}">Editar reservación</a>
                     <a class="btn btn-outline-danger" th:href="@{/reservaciones/{id}/cancelar(id=${reservacion.id})}">Cancelar reservación</a>

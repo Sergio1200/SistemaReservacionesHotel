@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Pagos simulados', ${sesion.recepcion ? '/pagos' : '/reservaciones'}, ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <header class="page-heading panel-heading">
+            <div>
+                <h1 th:text="|Pagos de la reservación #${historial.id}|"></h1>
+                <p>Simulación académica. Estos registros no representan cobros reales.</p>
+            </div>
+            <a class="text-link" th:href="@{/reservaciones/{id}(id=${historial.id})}">Ver reservación</a>
+        </header>
+        <p class="alert alert-success" role="status" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+        <p class="alert alert-warning" role="alert" th:if="${mensajeError}" th:text="${mensajeError}"></p>
+        <section class="surface form-surface resumen-pagos" aria-labelledby="resumen">
+            <div class="section-heading mb-3">
+                <h2 id="resumen">Resumen en MXN</h2>
+                <span th:replace="~{fragmentos/reservacion :: estado(${historial.estado})}"></span>
+            </div>
+            <dl class="datos-reservacion">
+                <dt>Costo total</dt><dd th:text="${#numbers.formatDecimal(historial.saldo.total, 1, 2)}"></dd>
+                <dt>Total pagado</dt><dd th:text="${#numbers.formatDecimal(historial.saldo.pagado, 1, 2)}"></dd>
+                <dt th:text="${historial.estado.admitePagos() ? 'Saldo pendiente' : 'Saldo histórico'}"></dt>
+                <dd th:text="${#numbers.formatDecimal(historial.saldo.pendiente, 1, 2)}"></dd>
+                <dt>En trámite</dt><dd th:text="${#numbers.formatDecimal(historial.saldo.enTramite, 1, 2)}"></dd>
+                <dt th:if="${historial.estado.admitePagos()}" class="disponibilidad-total">Disponible para un nuevo intento</dt>
+                <dd th:if="${historial.estado.admitePagos()}" class="disponibilidad-total"
+                    th:text="${#numbers.formatDecimal(historial.saldo.disponible, 1, 2)}"></dd>
+            </dl>
+            <p class="alert alert-warning mt-3 mb-0" th:if="${historial.requiereConciliacion()}">
+                La reservación está cancelada. Los pagos se conservaron y pueden requerir conciliación o reembolso.
+            </p>
+            <p class="alert alert-warning mt-3 mb-0" th:if="${historial.saldo.excedido}">
+                El importe histórico pagado supera el costo registrado y requiere revisión.
+            </p>
+        </section>
+        <div class="work-grid">
+            <section class="surface" aria-labelledby="historial-pagos">
+                <div class="surface-heading"><h2 id="historial-pagos">Historial de pagos</h2></div>
+                <p class="table-note mb-0" th:if="${#lists.isEmpty(historial.pagos)}">Aún no hay pagos registrados.</p>
+                <div class="table-responsive" tabindex="0" role="region" aria-labelledby="historial-pagos"
+                     th:unless="${#lists.isEmpty(historial.pagos)}">
+                    <table class="table data-table tabla-pagos">
+                        <thead>
+                            <tr><th scope="col">Pago</th><th scope="col">Fecha</th><th scope="col">Monto</th><th scope="col">Método</th>
+                                <th scope="col">Estado</th><th scope="col" th:if="${sesion.recepcion and historial.estado.admitePagos()}">Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="pago : ${historial.pagos}">
+                                <th scope="row" th:text="|#${pago.id}|"></th>
+                                <td><time th:datetime="${pago.fecha}" th:text="${#temporals.format(pago.fecha, 'dd/MM/yyyy HH:mm')}"></time></td>
+                                <td th:text="${#numbers.formatDecimal(pago.monto, 1, 2)}"></td>
+                                <td class="texto-inventario" th:text="${pago.metodo}"></td>
+                                <td><span class="status" th:classappend="${'estado-pago-' + pago.estado.name().toLowerCase()}"
+                                          th:text="${pago.estado.etiqueta}"></span></td>
+                                <td th:if="${sesion.recepcion and historial.estado.admitePagos()}">
+                                    <form th:if="${pago.estado.name() == 'PENDIENTE'}" method="post"
+                                          th:action="@{/reservaciones/{id}/pagos/{pagoId}/procesar(id=${historial.id},pagoId=${pago.id})}">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">Procesar</button>
+                                    </form>
+                                    <form class="form-actions" th:if="${pago.estado.name() == 'PROCESANDO'}" method="post"
+                                          th:action="@{/reservaciones/{id}/pagos/{pagoId}/validar(id=${historial.id},pagoId=${pago.id})}">
+                                        <button type="submit" class="btn btn-outline-success btn-sm" name="decision" value="APROBAR">Aprobar</button>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" name="decision" value="RECHAZAR">Rechazar</button>
+                                    </form>
+                                    <span th:if="${pago.estado.name() == 'PAGADO' or pago.estado.name() == 'RECHAZADO'}">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="surface form-surface" aria-labelledby="registro-pago">
+                <h2 id="registro-pago">Registrar pago simulado</h2>
+                <p class="mb-0 text-secondary" th:unless="${historial.permiteRegistrar()}"
+                   th:text="${historial.estado.admitePagos() ? 'En este momento no hay saldo disponible para otro intento.' : 'La reservación ya no admite pagos.'}"></p>
+                <form class="form-stack" method="post" th:action="@{/reservaciones/{id}/pagos(id=${historial.id})}"
+                      th:object="${pagoForm}">
+                    <div class="alert alert-warning mb-0" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                        <p class="mb-0" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+                    </div>
+                    <p class="alert alert-warning mb-0" role="alert" th:if="${#fields.hasErrors('intento')}" th:errors="*{intento}"></p>
+                    <p class="alert alert-warning mb-0" role="alert"
+                       th:if="${!historial.permiteRegistrar() and #fields.hasErrors('monto')}" th:errors="*{monto}"></p>
+                    <th:block th:if="${historial.permiteRegistrar()}">
+                        <input type="hidden" th:field="*{intento}">
+                        <div>
+                            <label class="form-label" for="monto">Monto (MXN)</label>
+                            <input class="form-control" type="number" min="0.01" step="0.01" required
+                                   th:field="*{monto}" th:errorclass="is-invalid">
+                            <p class="invalid-feedback mb-0" th:errors="*{monto}"></p>
+                        </div>
+                        <div>
+                            <label class="form-label" for="metodo">Método de pago</label>
+                            <select class="form-select" th:field="*{metodo}" th:errorclass="is-invalid" required>
+                                <option value="">Selecciona un método</option>
+                                <option th:each="metodo : ${metodos}" th:value="${metodo.name()}" th:text="${metodo.etiqueta}"></option>
+                            </select>
+                            <p class="invalid-feedback mb-0" th:errors="*{metodo}"></p>
+                        </div>
+                        <div class="form-actions"><button class="btn btn-primary" type="submit">Registrar intento</button></div>
+                    </th:block>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

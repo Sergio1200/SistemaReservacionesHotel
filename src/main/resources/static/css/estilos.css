@@ -551,6 +551,12 @@ a:focus-visible, button:focus-visible, [tabindex="0"]:focus-visible {
 }
 .datos-reservacion dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 .status-neutral { color: var(--hotel-muted); background: var(--hotel-bg); }
+.resumen-pagos { margin-bottom: 1rem; }
+.tabla-pagos { min-width: 31rem; }
+.estado-pago-pendiente { color: #765111; background: #fff3da; }
+.estado-pago-procesando { color: #275386; background: #e8f0fc; }
+.estado-pago-pagado { color: #1e6347; background: #e5f5ed; }
+.estado-pago-rechazado { color: #8a2b35; background: #f9e5e8; }
 
 .status { display: inline-block; padding: 0.22rem 0.52rem; border-radius: 0.38rem; font-size: 0.875rem; font-weight: 650; }
 .status-green { background: #e5f5ed; color: #1e6347; }

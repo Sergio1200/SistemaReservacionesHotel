@@ -30,11 +30,6 @@ public class VistasController {
         return "acerca-de";
     }
 
-    @GetMapping("/pagos")
-    public String pagos() {
-        return "pagos";
-    }
-
     @GetMapping("/check-in-check-out")
     public String checkInCheckOut() {
         return "check-in-check-out";

@@ -127,4 +127,10 @@ public class Reservacion {
     public void cancelar() {
         estado = EstadoReservacion.CANCELADA;
     }
+
+    public void confirmarPagoCompleto() {
+        if (estado == EstadoReservacion.PENDIENTE) {
+            estado = EstadoReservacion.CONFIRMADA;
+        }
+    }
 }

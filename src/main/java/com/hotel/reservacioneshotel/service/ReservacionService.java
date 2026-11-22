@@ -65,7 +65,7 @@ public class ReservacionService {
 
     @Transactional(readOnly = true)
     public Detalle consultar(Operador operador, Long id) {
-        return detalle(autorizar(operador, reservaciones.findOneByIdReservacion(id).orElseThrow(NoEncontrada::new)));
+        return detalle(buscarReservacion(operador, id));
     }
 
     @Transactional(readOnly = true)
@@ -152,7 +152,11 @@ public class ReservacionService {
         return reservacion;
     }
 
-    private Reservacion bloquearReservacion(Operador operador, Long id) {
+    Reservacion buscarReservacion(Operador operador, Long id) {
+        return autorizar(operador, reservaciones.findOneByIdReservacion(id).orElseThrow(NoEncontrada::new));
+    }
+
+    Reservacion bloquearReservacion(Operador operador, Long id) {
         return autorizar(operador, reservaciones.buscarParaActualizar(id).orElseThrow(NoEncontrada::new));
     }
 
@@ -202,11 +206,11 @@ public class ReservacionService {
 
     private void validarPagosAlEditar(Reservacion reservacion, BigDecimal total) {
         Long id = reservacion.getIdReservacion();
-        if (total.compareTo(pagos.sumarMontos(id, EstadoPago.PAGADO)) < 0) {
+        if (total.compareTo(pagos.sumarMontos(id, List.of(EstadoPago.PAGADO))) < 0) {
             throw new OperacionNoPermitida(null, "El nuevo total no puede ser menor que el importe ya pagado.");
         }
         if (total.compareTo(reservacion.getCostoTotal()) != 0
-                && pagos.existsByReservacion_IdReservacionAndEstadoIn(id, List.of(EstadoPago.PENDIENTE, EstadoPago.PROCESANDO))) {
+                && pagos.existsByReservacion_IdReservacionAndEstadoIn(id, EstadoPago.EN_TRAMITE)) {
             throw new OperacionNoPermitida(null, "El total no puede cambiar mientras haya un pago pendiente o en proceso.");
         }
     }

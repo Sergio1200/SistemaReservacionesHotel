@@ -6,6 +6,23 @@ El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del C
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
 
+## Capturas de la etapa 9
+
+El flujo se verificó en Edge a 1440 y 390 píxeles con una instancia aislada de MySQL 8.0.46. Una reservación ficticia de 850.75 MXN recibió dos pagos aprobados, de 300.00 y 550.75 MXN. Un intento rechazado por 200.00 MXN quedó en el historial y no redujo el saldo. Al cancelar la reservación, se comprobó en MySQL que los tres pagos conservaron su importe, fecha y estado. Las capturas terminan antes del pie académico.
+
+| Flujo | Captura |
+| --- | --- |
+| Registro con la cuenta del huésped | [Intento parcial](capturas/etapa-9/intento-parcial.png) |
+| Búsqueda por identificador | [Recepción](capturas/etapa-9/busqueda-recepcion.png) |
+| Procesamiento y decisión manual | [Validación en recepción](capturas/etapa-9/validacion-recepcion.png) |
+| Aprobación de un pago parcial | [Saldo restante](capturas/etapa-9/saldo-parcial.png) |
+| Importe superior al saldo | [Validación en el formulario](capturas/etapa-9/importe-invalido.png) |
+| Rechazo de un intento | [Historial y saldo](capturas/etapa-9/rechazado.png) |
+| Aprobación del último importe | [Reservación confirmada](capturas/etapa-9/pago-completo.png) |
+| Acceso a pagos de otra cuenta | [HTTP 403](capturas/etapa-9/acceso-denegado.png) |
+| Consulta del huésped a 390 píxeles | [Historial en celular](capturas/etapa-9/historial-390.png) |
+| Cancelación con pagos previos | [Aviso de conciliación](capturas/etapa-9/cancelada.png) |
+
 ## Capturas de la etapa 8
 
 Se probó en Edge a 1440 y 390 píxeles con MySQL 8.0.46 aislado. La búsqueda pública conservó la selección después de iniciar sesión. Se crearon reservaciones como huésped y como recepcionista, se consultó y filtró el listado, y se cambiaron fechas y habitación. Al cancelar, la habitación volvió a aparecer en Disponibilidad. Los datos son ficticios y las capturas terminan antes del pie académico.

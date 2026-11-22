@@ -43,6 +43,8 @@ public class SeguridadConfig {
                         .requestMatchers("/", "/login", "/registro", "/acerca-de", "/disponibilidad",
                                 "/acceso-denegado", "/css/**", "/js/**", "/img/**").permitAll()
                         .requestMatchers("/panel").hasAnyRole(HUESPED.name(), RECEPCIONISTA.name(), ADMINISTRADOR.name())
+                        .requestMatchers("/reservaciones/{id}/pagos/{pagoId}/procesar",
+                                "/reservaciones/{id}/pagos/{pagoId}/validar").hasRole(RECEPCIONISTA.name())
                         .requestMatchers("/reservaciones", "/reservaciones/**")
                                 .hasAnyRole(HUESPED.name(), RECEPCIONISTA.name())
                         .requestMatchers("/huespedes", "/huespedes/**", "/pagos", "/check-in-check-out")
