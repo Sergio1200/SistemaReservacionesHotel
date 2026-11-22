@@ -1,0 +1,43 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+actor "Receptionist" as U
+participant EstanciaController as C
+participant EstanciaService as S
+participant "Repositories" as R
+database MySQL as DB
+U -> C : POST /check-in-check-out/{id}/check-out
+C -> S : registrarSalida(id)
+group READ_COMMITTED transaction
+  S -> R : Lock reservation and room
+  R -> DB : Read other active stays
+  alt EN_CURSO with actual check-in
+    S -> S : Record local time and set FINALIZADA
+    R -> DB : Persist timestamps and conditional room release
+    note right of DB
+      Release only when no other active stay exists.
+      Payments and original charges remain intact.
+    end note
+  else Invalid or repeated operation
+    S --> C : Conflict with no partial write
+  end
+end
+C --> U : Redirect with success or return an error
+@enduml

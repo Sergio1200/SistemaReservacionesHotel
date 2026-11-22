@@ -1,0 +1,54 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+left to right direction
+!pragma layout smetana
+actor "Guest" as Guest
+actor "Receptionist" as Desk
+actor "Administrator" as Admin
+rectangle "ReservacionesHotel" {
+  usecase "Check room availability" as Available
+  usecase "Sign in and sign out" as Session
+  usecase "Register a guest account" as Register
+  usecase "Manage own reservations\nand submit simulated payments" as Own
+  usecase "Manage guest records" as Guests
+  usecase "Manage guest reservations\nand review simulated payments" as Ops
+  usecase "Record check-in and check-out" as Stays
+  usecase "Manage rooms and room types" as Inventory
+}
+Guest -- Register
+Guest -- Own
+Guest -- Available
+Guest -- Session
+Desk -- Available
+Desk -- Session
+Desk -- Guests
+Desk -- Ops
+Desk -- Stays
+Admin -- Session
+Admin -- Available
+Admin -- Inventory
+note bottom of Available
+  /disponibilidad is also public.
+end note
+note bottom of Inventory
+  Room occupancy changes through stay operations.
+end note
+@enduml

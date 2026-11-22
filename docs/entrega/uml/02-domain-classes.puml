@@ -1,0 +1,94 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+!pragma layout smetana
+hide circle
+hide empty methods
+skinparam classAttributeIconSize 0
+class Huesped {
+  idHuesped : Long
+  nombre : String
+  telefono : String
+  correo : String
+}
+class Cuenta {
+  idCuenta : Long
+  correo : String
+  contrasenaHash : String
+}
+abstract class Empleado {
+  idEmpleado : Long
+  nombre : String
+  usuario : String
+  contrasenaHash : String
+  activo : boolean
+  getRol() : Rol
+}
+class Recepcionista
+class Administrador
+class TipoHabitacion {
+  idTipo : Long
+  nombre : String
+  capacidad : int
+  descripcion : String
+}
+class Habitacion {
+  idHabitacion : Long
+  numero : String
+  piso : int
+  estadoOperativo : EstadoHabitacion
+  precioPorNoche : BigDecimal
+}
+class Reservacion {
+  idReservacion : Long
+  fechaEntrada : LocalDate
+  fechaSalida : LocalDate
+  fechaHoraCheckIn : LocalDateTime
+  fechaHoraCheckOut : LocalDateTime
+  numeroHuespedes : int
+  precioNocheAplicado : BigDecimal
+  costoTotal : BigDecimal
+  estado : EstadoReservacion
+}
+class Pago {
+  idPago : Long
+  fecha : LocalDateTime
+  monto : BigDecimal
+  metodoPago : String
+  estado : EstadoPago
+  claveIntento : String
+}
+Empleado <|-- Recepcionista
+Empleado <|-- Administrador
+Cuenta "0..1" -- "0..1" Huesped
+Cuenta "0..1" -- "0..1" Empleado
+Huesped "1" -- "0..*" Reservacion
+Habitacion "1" -- "0..*" Reservacion
+TipoHabitacion "1" -- "0..*" Habitacion
+Reservacion "1" -- "0..*" Pago
+note left of Cuenta
+  Exactly one linked owner.
+  Staff use SINGLE_TABLE inheritance.
+end note
+note bottom of Reservacion
+  Both actual timestamps are nullable.
+  State values appear in Figures A13-A15.
+end note
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+actor "Guest" as U
+participant RegistroController as C
+participant RegistroHuespedService as S
+participant "HuespedRepository\nCuentaRepository" as R
+database MySQL as DB
+U -> C : POST /registro with CSRF token
+C -> C : Validate fields and password confirmation
+alt Valid form
+  C -> S : registrar(nombre, correo, telefono, contrasena)
+  S -> R : Check email and save Huesped and Cuenta
+  R -> DB : Insert profile and BCrypt hash in one transaction
+  DB --> S : Commit or reject duplicate
+  S --> C : Result
+  C --> U : Redirect to /login?registrado or show field error
+else Invalid form
+  C --> U : Render registration with field errors
+end
+@enduml

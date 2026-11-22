@@ -1,0 +1,42 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+actor "Guest or receptionist" as U
+participant ReservacionController as C
+participant ReservacionService as S
+participant "Repositories" as R
+database MySQL as DB
+U -> C : POST /reservaciones/nueva with CSRF token
+C -> S : crear(...)
+group READ_COMMITTED transaction
+  S -> R : Resolve guest, lock room, check room type
+  R -> DB : Read owner and lock applicable rows
+  S -> R : Check availability again
+  R -> DB : Query conflicting intervals and occupancy
+  alt Room is available
+    S -> S : Calculate total using BigDecimal
+    S -> R : Save Reservacion as PENDIENTE
+    R -> DB : Insert historical price and total
+  else Invalid dates, capacity or overlap
+    S --> C : Reject and roll back
+  end
+end
+C --> U : Redirect to details or render form error
+@enduml

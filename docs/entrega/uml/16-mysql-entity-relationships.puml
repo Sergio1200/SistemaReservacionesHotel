@@ -1,0 +1,91 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+!pragma layout smetana
+hide circle
+skinparam linetype ortho
+entity huespedes {
+  * id_huesped : BIGINT <<PK>>
+  --
+  correo : VARCHAR(254) <<UQ>>
+}
+entity empleados {
+  * id_empleado : BIGINT <<PK>>
+  --
+  usuario : VARCHAR(80) <<UQ>>
+  rol : VARCHAR(16)
+}
+entity cuentas {
+  * id_cuenta : BIGINT <<PK>>
+  --
+  correo : VARCHAR(254) <<UQ>>
+  id_huesped : BIGINT <<FK, UQ>>
+  id_empleado : BIGINT <<FK, UQ>>
+}
+entity tipos_habitacion {
+  * id_tipo : BIGINT <<PK>>
+  --
+  nombre : VARCHAR(80) <<UQ>>
+  capacidad : INT
+}
+entity habitaciones {
+  * id_habitacion : BIGINT <<PK>>
+  --
+  id_tipo : BIGINT <<FK>>
+  numero : VARCHAR(20) <<UQ>>
+  estado_operativo : VARCHAR(16)
+  precio_por_noche : DECIMAL(12,2)
+}
+entity reservaciones {
+  * id_reservacion : BIGINT <<PK>>
+  --
+  id_huesped : BIGINT <<FK>>
+  id_habitacion : BIGINT <<FK>>
+  fecha_entrada : DATE
+  fecha_salida : DATE
+  precio_noche_aplicado : DECIMAL(12,2)
+  costo_total : DECIMAL(12,2)
+  fecha_hora_check_in : DATETIME(6)
+  fecha_hora_check_out : DATETIME(6)
+  estado : VARCHAR(16)
+}
+entity pagos {
+  * id_pago : BIGINT <<PK>>
+  --
+  id_reservacion : BIGINT <<FK>>
+  monto : DECIMAL(12,2)
+  estado : VARCHAR(16)
+  clave_intento : VARCHAR(36)
+}
+huespedes |o--o| cuentas
+empleados |o--o| cuentas
+huespedes ||--o{ reservaciones
+tipos_habitacion ||--o{ habitaciones
+habitaciones ||--o{ reservaciones
+reservaciones ||--o{ pagos
+note bottom of cuentas
+  Exactly one owner.
+  FK fields are individually unique.
+end note
+note bottom of pagos
+  (id_reservacion, clave_intento) is unique.
+  A legacy attempt key may be NULL.
+end note
+@enduml

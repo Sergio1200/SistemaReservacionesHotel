@@ -340,3 +340,7 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 Quedan pendientes la conciliación y los reembolsos, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.
+
+## Documentación de entrega
+
+El informe técnico final, el manual, los diagramas actualizados y los guiones de presentación y video están en inglés. El índice reúne los archivos PDF y DOCX, los scripts SQL y las evidencias académicas. [Índice de entrega](docs/entrega/README.md)

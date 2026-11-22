@@ -1,0 +1,41 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+actor "Guest or receptionist" as U
+participant PagoController as C
+participant PagoService as S
+participant "Repositories" as R
+database MySQL as DB
+U -> C : POST /reservaciones/{id}/pagos
+C -> S : registrar(..., monto, metodo, intento)
+group READ_COMMITTED transaction
+  S -> R : Lock reservation and authorize
+  R -> DB : Lock reservation, read clave_intento and totals
+  alt Same attempt and same details
+    S --> C : Return existing payment
+  else New attempt within available balance
+    S -> R : Save Pago as PENDIENTE
+    R -> DB : Insert attempt with unique reservation and key
+  else Invalid amount, state or reused key
+    S --> C : Reject attempt
+  end
+end
+C --> U : Show payment history or field error
+@enduml

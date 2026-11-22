@@ -1,0 +1,43 @@
+@startuml
+skinparam dpi 180
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontColor #172841
+skinparam ArrowColor #35506F
+skinparam actorBorderColor #35506F
+skinparam sequenceParticipantBackgroundColor #EFF4FA
+skinparam sequenceParticipantBorderColor #55718D
+skinparam sequenceLifeLineBorderColor #8295A9
+skinparam classBackgroundColor #F4F7FB
+skinparam classBorderColor #55718D
+skinparam stateBackgroundColor #EFF4FA
+skinparam stateBorderColor #55718D
+skinparam usecaseBackgroundColor #EFF4FA
+skinparam usecaseBorderColor #55718D
+skinparam noteBackgroundColor #F4F8F5
+skinparam noteBorderColor #739187
+actor "Receptionist" as U
+participant PagoController as C
+participant PagoService as S
+participant "Repositories" as R
+database MySQL as DB
+U -> C : POST .../{pagoId}/procesar
+C -> S : procesar(...)
+S -> R : Lock reservation, then pending payment
+R -> DB : Set PROCESANDO and commit
+U -> C : POST .../{pagoId}/validar
+C -> S : validar(..., decision)
+group Separate READ_COMMITTED transaction
+  S -> R : Lock reservation and payment again
+  R -> DB : Read state and payment totals
+  alt Approved within available balance
+    S -> S : Reconcile confirmation against cost
+    R -> DB : Commit PAGADO and any reservation state change
+  else Rejected
+    R -> DB : Commit RECHAZADO and keep the history
+  end
+end
+C --> U : Redirect to the payment history
+@enduml
