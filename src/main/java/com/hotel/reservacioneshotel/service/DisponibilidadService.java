@@ -1,6 +1,7 @@
 package com.hotel.reservacioneshotel.service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -19,13 +20,15 @@ public class DisponibilidadService {
     private static final LocalDate ULTIMA_FECHA_MYSQL = LocalDate.of(9999, 12, 31);
 
     private final HabitacionRepository habitaciones;
+    private final Clock relojHotel;
 
-    public DisponibilidadService(HabitacionRepository habitaciones) {
+    public DisponibilidadService(HabitacionRepository habitaciones, Clock relojHotel) {
         this.habitaciones = habitaciones;
+        this.relojHotel = relojHotel;
     }
 
     public LocalDate hoy() {
-        return LocalDate.now();
+        return LocalDate.now(relojHotel);
     }
 
     @Transactional(readOnly = true)

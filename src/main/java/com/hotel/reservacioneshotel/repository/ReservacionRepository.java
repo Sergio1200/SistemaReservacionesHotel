@@ -24,12 +24,13 @@ public interface ReservacionRepository extends JpaRepository<Reservacion, Long> 
     @Query("""
             select r from Reservacion r
             join fetch r.habitacion h join fetch h.tipoHabitacion join fetch r.huesped u
-            where :q = '' or r.idReservacion = :id
+            where r.estado in :estados and (:q = '' or r.idReservacion = :id
                 or locate(lower(:q), lower(u.nombre)) > 0
-                or locate(lower(:q), lower(u.correo)) > 0
+                or locate(lower(:q), lower(u.correo)) > 0)
             order by r.fechaEntrada desc, r.idReservacion desc
             """)
-    List<Reservacion> buscarParaRecepcion(@Param("q") String q, @Param("id") Long id);
+    List<Reservacion> buscarParaRecepcion(@Param("q") String q, @Param("id") Long id,
+                                         @Param("estados") Collection<EstadoReservacion> estados);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from Reservacion r where r.idReservacion = :id")
@@ -40,6 +41,9 @@ public interface ReservacionRepository extends JpaRepository<Reservacion, Long> 
     boolean existsByHabitacion_IdHabitacion(Long id);
 
     boolean existsByHabitacion_IdHabitacionAndEstado(Long id, EstadoReservacion estado);
+
+    boolean existsByHabitacion_IdHabitacionAndEstadoAndIdReservacionNot(Long habitacionId, EstadoReservacion estado,
+                                                                       Long reservacionId);
 
     boolean existsByHabitacion_IdHabitacionAndEstadoInAndNumeroHuespedesGreaterThan(
             Long id, Collection<EstadoReservacion> estados, int capacidad);

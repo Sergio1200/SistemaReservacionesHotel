@@ -3,6 +3,7 @@ package com.hotel.reservacioneshotel.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,8 +56,7 @@ public class ReservacionService {
     @Transactional(readOnly = true)
     public List<Detalle> listar(Operador operador, String criterio) {
         if (operador.recepcion()) {
-            String q = criterio.strip();
-            return reservaciones.buscarParaRecepcion(q, buscarId(q)).stream().map(this::detalle).toList();
+            return buscarParaRecepcion(criterio, List.of(EstadoReservacion.values())).stream().map(this::detalle).toList();
         }
         return idDelHuesped(operador)
                 .map(reservaciones::findByHuesped_IdHuespedOrderByFechaEntradaDescIdReservacionDesc)
@@ -157,7 +157,16 @@ public class ReservacionService {
     }
 
     Reservacion bloquearReservacion(Operador operador, Long id) {
-        return autorizar(operador, reservaciones.buscarParaActualizar(id).orElseThrow(NoEncontrada::new));
+        return autorizar(operador, bloquearReservacion(id));
+    }
+
+    Reservacion bloquearReservacion(Long id) {
+        return reservaciones.buscarParaActualizar(id).orElseThrow(NoEncontrada::new);
+    }
+
+    List<Reservacion> buscarParaRecepcion(String criterio, Collection<EstadoReservacion> estados) {
+        String q = criterio.strip();
+        return reservaciones.buscarParaRecepcion(q, buscarId(q), estados);
     }
 
     private Habitacion bloquearHabitacion(Long id) {

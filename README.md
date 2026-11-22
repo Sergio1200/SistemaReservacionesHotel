@@ -1,6 +1,6 @@
 # ReservacionesHotel
 
-Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación, gestión de huéspedes e inventario, consulta pública de disponibilidad y reservaciones para huéspedes y recepción.
+Sistema de Gestión de Reservaciones de Hotel para la materia Paradigmas de Programación I. La aplicación ofrece registro de huéspedes, autenticación, gestión de huéspedes e inventario, consulta pública de disponibilidad, reservaciones, pagos simulados y registro de entradas y salidas por recepción.
 
 ## Autor y contexto académico
 
@@ -134,12 +134,12 @@ V2 reserva los correos históricos de huéspedes que sean únicos al normalizarl
 
 ## Pruebas
 
-`clean verify` ejecuta las pruebas web, de persistencia y migración con H2 en memoria. Incluye las pruebas anteriores, `PagoMvcTests` para flujos, validaciones y acceso a pagos y `MigracionPagosTests` para la actualización desde V2. El perfil MySQL habilita `ReservacionConcurrenciaMySqlTests` y `PagoConcurrenciaMySqlTests`.
+`clean verify` ejecuta las pruebas web, de persistencia y migración con H2 en memoria. Incluye las pruebas anteriores, `EstanciaMvcTests` para entradas, salidas, permisos y disponibilidad, y `MigracionEstanciasTests` para verificar la actualización de V3 a V4 con datos históricos. El perfil MySQL habilita `ReservacionConcurrenciaMySqlTests`, `PagoConcurrenciaMySqlTests` y `EstanciaConcurrenciaMySqlTests`.
 
 Para ejecutar la integración contra MySQL, configura las variables de conexión de una **instancia aislada de pruebas** con el esquema `hotel_reservaciones` creado. Flyway aplica las migraciones. Las pruebas de concurrencia confirman transacciones independientes y retiran sus registros de prueba al finalizar.
 
 ```powershell
-.\mvnw.cmd "-Dtest=PagoMvcTests,PagoConcurrenciaMySqlTests,ReservacionMvcTests,ReservacionConcurrenciaMySqlTests,DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
+.\mvnw.cmd "-Dtest=EstanciaMvcTests,EstanciaConcurrenciaMySqlTests,PagoMvcTests,PagoConcurrenciaMySqlTests,ReservacionMvcTests,ReservacionConcurrenciaMySqlTests,DisponibilidadMvcTests,InventarioCrudMvcTests,HuespedCrudMvcTests,PersistenciaJpaTests,SeguridadMvcTests" "-Dhotel.test.profile=mysql" test
 ```
 
 ## Registro y sesión
@@ -177,7 +177,7 @@ En NetBeans puedes ejecutar el mismo objetivo Maven con `-Dspring-boot.run.profi
 | Público | `/`, `/login`, `/registro`, `/acerca-de`, `/disponibilidad` y recursos bajo `/css/`, `/js/` e `/img/`. |
 | Cualquier rol autenticado | `/panel` y `POST /logout`. |
 | Huésped | `/reservaciones` y sus subrutas, con acceso a sus propias reservaciones. |
-| Recepcionista | `/huespedes` y `/reservaciones` con sus subrutas, `/pagos` y `/check-in-check-out`. |
+| Recepcionista | `/huespedes` y `/reservaciones` con sus subrutas, `/pagos` y `/check-in-check-out` con las acciones de entrada y salida. |
 | Administrador | `/habitaciones`, `/tipos-habitacion` y sus subrutas. |
 
 ## Gestión de huéspedes
@@ -220,7 +220,7 @@ Solo el rol `ADMINISTRADOR` tiene acceso a ambos módulos. Las operaciones de es
 
 ### Estado operativo y disponibilidad
 
-El estado persistido es `DISPONIBLE` u `OCUPADA`, conforme al UML corregido. En el inventario se elige el estado inicial al registrar la habitación. Durante la edición se muestra el estado actual para consulta. Los flujos futuros de check-in y check-out gestionarán las transiciones. La condición «Reservada» se deduce para el intervalo consultado.
+El estado persistido es `DISPONIBLE` u `OCUPADA`, conforme al UML corregido. En el inventario se elige el estado inicial al registrar la habitación. Durante la edición se muestra el estado actual para consulta. El registro de entradas y salidas gestiona las transiciones durante una estancia. La condición «Reservada» se deduce para el intervalo consultado.
 
 ### Probar en Apache NetBeans
 
@@ -281,6 +281,28 @@ Un pago parcial conserva el estado de una reservación `PENDIENTE`. Cuando la su
 
 `PagoService` usa transacciones `READ_COMMITTED`. El registro, el procesamiento y la validación adquieren primero el bloqueo de escritura sobre la reservación que usa la edición y la cancelación. Al procesar o validar se bloquea después el pago. La aprobación consulta nuevamente el saldo y los intentos en trámite antes de cambiar el pago y, si corresponde, confirmar la reservación en la misma transacción. Las pruebas de MySQL cubren altas que excederían el saldo, reenvíos y aprobaciones duplicadas, pagos parciales concurrentes, cancelación frente a aprobación y reintento tras agotar una espera de bloqueo.
 
+## Check-in y check-out
+
+La pantalla agrupa las llegadas confirmadas, las estancias en curso y las reservaciones finalizadas. Recepción puede buscar por identificador, nombre o correo del huésped y consultar el estado actual de la habitación, las fechas programadas y las horas reales de entrada y salida. El huésped sigue consultando sus reservaciones desde las vistas existentes. Spring Security restringe el módulo a recepción y exige CSRF en los formularios POST.
+
+| Método y ruta | Operación |
+| --- | --- |
+| `GET /check-in-check-out?q=` | Muestra los tres grupos. La búsqueda es opcional. |
+| `POST /check-in-check-out/{id}/check-in` | Registra la entrada y pasa la reservación de `CONFIRMADA` a `EN_CURSO`. |
+| `POST /check-in-check-out/{id}/check-out` | Registra la salida y pasa la reservación de `EN_CURSO` a `FINALIZADA`. |
+
+- **Entrada.** Puede registrarse desde la fecha programada de llegada hasta el día anterior a la salida. La habitación debe tener cupo suficiente y estar libre de ocupación operativa y de otras estancias activas, incluso si la fecha de salida de una estancia activa ya pasó. Al registrar el check-in se marca `OCUPADA`.
+- **Salida.** Puede registrarse a partir del momento real de entrada. Se aceptan salidas anticipadas, el día programado y salidas tardías sin recargos. La habitación vuelve a `DISPONIBLE` si no queda otra estancia activa. Una salida anticipada libera el resto del intervalo que ya se ocupó, sujeto a las demás reservaciones vigentes. La consulta futura sigue excluyendo periodos superpuestos con estancias pendientes, confirmadas o en curso.
+- **Zona y auditoría.** `HOTEL_ZONA_HORARIA` usa `America/Mexico_City` por defecto y se aplica también al «hoy» de disponibilidad. Flyway V4 agrega `fecha_hora_check_in` y `fecha_hora_check_out` como `DATETIME(6)` con hora local del hotel. Los registros históricos conservan valores nulos. Una estancia histórica en curso que carece de hora de entrada requiere revisión y carece de botón de salida.
+- **Pagos.** La aprobación del total sigue siendo la que confirma la reservación en el flujo de pagos. Las operaciones de estancia conservan las fechas programadas, la tarifa acordada, el costo y el historial de pagos. Al finalizar, el historial de pagos queda disponible para consulta.
+- **Transacciones.** `EstanciaService` usa `READ_COMMITTED` y bloquea primero la reservación y después la habitación. La entrada toma también un bloqueo compartido en el tipo para verificar el cupo. Una lectura bajo el bloqueo de habitación detecta otras estancias en curso. El cambio de la reservación y el de la habitación se confirman juntos. Un conflicto o tiempo de espera devuelve HTTP 409 y mantiene los cambios sin aplicar. Una reservación inexistente devuelve 404, una solicitud inválida devuelve 400 y un acceso denegado devuelve 403.
+
+Las pruebas de MySQL 8.0.46 incluyen dos entradas para la misma reservación, dos salidas para la misma estancia, dos reservaciones para una habitación, una entrada que espera a que termine otra salida y la recuperación tras agotar una espera de bloqueo. Se verificó también la aplicación de V4 sobre V3 con reservaciones y pagos históricos de prueba.
+
+### Ajustes al UML
+
+El diagrama de clases de reservaciones puede incorporar `fechaHoraCheckIn` y `fechaHoraCheckOut` como atributos opcionales de tipo `LocalDateTime`. Los diagramas de secuencia de entrada y salida pueden identificar a `EstanciaService`, la transacción que bloquea reservación y habitación, y la condición de liberar la habitación cuando no quede otra estancia activa. Los diagramas de estados siguen representando las mismas transiciones.
+
 ## Vistas del portal
 
 Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los formularios de los prototipos mantienen deshabilitado el envío.
@@ -297,9 +319,9 @@ Las tablas marcadas «Registros de ejemplo» muestran datos ilustrativos. Los fo
 | `/reservaciones/nueva` | Alta funcional para huéspedes y recepción. |
 | `/reservaciones` | Listado con consulta de detalle, edición y cancelación. |
 | `/pagos` | Búsqueda de reservaciones y acceso al historial de pagos para recepción. |
-| `/check-in-check-out` | Listado de estancias con acciones de entrada y salida deshabilitadas. |
+| `/check-in-check-out` | Llegadas, estancias en curso y reservaciones finalizadas, con registro de entradas y salidas por recepción. |
 | `/acerca-de` | Objetivo del sistema, autoría, contexto académico, tecnologías y logotipos institucionales. |
 
-Quedan pendientes el check-in y check-out, la conciliación y los reembolsos, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
+Quedan pendientes la conciliación y los reembolsos, y la verificación de titularidad para activar cuentas registradas por recepción o cambiar el correo de cuentas activas.
 
 Consulta las [notas de interfaz y capturas](docs/interfaz/README.md) para la revisión visual.

@@ -2,6 +2,7 @@ package com.hotel.reservacioneshotel.domain.reservaciones;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.hotel.reservacioneshotel.domain.habitaciones.Habitacion;
 import com.hotel.reservacioneshotel.domain.usuarios.Huesped;
@@ -42,6 +43,12 @@ public class Reservacion {
 
     @Column(name = "fecha_salida", nullable = false)
     private LocalDate fechaSalida;
+
+    @Column(name = "fecha_hora_check_in")
+    private LocalDateTime fechaHoraCheckIn;
+
+    @Column(name = "fecha_hora_check_out")
+    private LocalDateTime fechaHoraCheckOut;
 
     @Column(name = "numero_huespedes", nullable = false)
     private int numeroHuespedes;
@@ -98,6 +105,14 @@ public class Reservacion {
         return fechaSalida;
     }
 
+    public LocalDateTime getFechaHoraCheckIn() {
+        return fechaHoraCheckIn;
+    }
+
+    public LocalDateTime getFechaHoraCheckOut() {
+        return fechaHoraCheckOut;
+    }
+
     public int getNumeroHuespedes() {
         return numeroHuespedes;
     }
@@ -132,5 +147,15 @@ public class Reservacion {
         if (estado == EstadoReservacion.PENDIENTE) {
             estado = EstadoReservacion.CONFIRMADA;
         }
+    }
+
+    public void registrarEntrada(LocalDateTime momento) {
+        fechaHoraCheckIn = momento;
+        estado = EstadoReservacion.EN_CURSO;
+    }
+
+    public void registrarSalida(LocalDateTime momento) {
+        fechaHoraCheckOut = momento;
+        estado = EstadoReservacion.FINALIZADA;
     }
 }

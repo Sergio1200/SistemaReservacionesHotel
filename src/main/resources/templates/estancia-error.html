@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragmentos/estructura :: pagina('Operación de estancia', '/check-in-check-out', ~{::main})}">
+<body>
+    <main id="contenido" class="app-content app-main" tabindex="-1">
+        <section class="surface form-surface registro-frame" aria-labelledby="titulo-error">
+            <h1 id="titulo-error">No se pudo completar la operación</h1>
+            <p role="alert" th:text="${mensajeError}"></p>
+            <a class="btn btn-outline-primary" th:href="@{/check-in-check-out}">Volver a entradas y salidas</a>
+        </section>
+    </main>
+</body>
+</html>

@@ -6,27 +6,69 @@
         <header class="page-heading panel-heading">
             <div>
                 <h1>Check-in y check-out</h1>
-                <p>Consulta las reservaciones para revisar entradas y salidas en recepción.</p>
+                <p>Registra entradas y salidas de huéspedes en recepción.</p>
             </div>
             <a class="btn btn-outline-primary" th:href="@{/reservaciones}">Ver reservaciones</a>
         </header>
-        <section class="surface" aria-labelledby="movimientos-recepcion">
-            <div class="surface-heading">
-                <h2 id="movimientos-recepcion">Entradas y salidas</h2>
-                <span class="sample-label">Registros de ejemplo</span>
+        <p class="alert alert-success" role="status" th:if="${mensajeExito}" th:text="${mensajeExito}"></p>
+        <section class="surface" aria-label="Buscar estancias">
+            <form class="busqueda-huespedes" method="get" th:action="@{/check-in-check-out}" role="search">
+                <label class="form-label" for="buscar-estancia">Buscar por número de reservación, nombre o correo del huésped</label>
+                <div class="busqueda-huespedes-campos">
+                    <input class="form-control" id="buscar-estancia" type="search" name="q" th:value="${q}" maxlength="120">
+                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                    <a class="text-link" th:if="${!q.isEmpty()}" th:href="@{/check-in-check-out}">Limpiar</a>
+                </div>
+            </form>
+            <p class="table-note mb-3">
+                Fecha del hotel
+                <time th:datetime="${hoy}" th:text="${#temporals.format(hoy, 'dd/MM/yyyy')}"></time>
+                <span th:text="|· ${zona}|"></span>
+            </p>
+        </section>
+
+        <section class="surface form-surface" th:each="grupo : ${grupos}" th:attr="aria-labelledby=${grupo.id}">
+            <h2 th:id="${grupo.id}" th:text="${grupo.titulo}"></h2>
+            <p class="text-secondary mb-0" th:if="${grupo.movimientos.isEmpty()}">No hay reservaciones en este grupo para mostrar.</p>
+            <div class="row row-cols-1 row-cols-xl-2 g-3">
+                <div class="col" th:each="r : ${grupo.movimientos}">
+                    <article class="border rounded p-3 h-100" th:id="|estancia-${r.id}|">
+                        <div class="section-heading flex-wrap mb-3">
+                            <h3 class="h5 mb-0"><a class="text-link" th:href="@{/reservaciones/{id}(id=${r.id})}"
+                                                  th:text="|Reservación #${r.id}|"></a></h3>
+                            <span class="status" th:classappend="${r.estado.name() == 'EN_CURSO' ? 'status-green' : (r.estado.name() == 'FINALIZADA' ? 'status-neutral' : 'status-blue')}"
+                                  th:text="${r.estado.etiqueta}"></span>
+                        </div>
+                        <dl class="datos-reservacion">
+                            <dt>Huésped</dt><dd class="detalle-inventario" th:text="${r.huesped}"></dd>
+                            <dt>Habitación</dt><dd th:text="|${r.habitacion} · ${r.estadoHabitacion.etiqueta}|"></dd>
+                            <dt>Entrada programada</dt>
+                            <dd><time th:datetime="${r.entrada}" th:text="${#temporals.format(r.entrada, 'dd/MM/yyyy')}"></time></dd>
+                            <dt>Salida programada</dt>
+                            <dd><time th:datetime="${r.salida}" th:text="${#temporals.format(r.salida, 'dd/MM/yyyy')}"></time></dd>
+                            <dt>Entrada real</dt>
+                            <dd>
+                                <time th:if="${r.checkIn != null}" th:datetime="${r.checkIn}" th:text="${#temporals.format(r.checkIn, 'dd/MM/yyyy HH:mm:ss')}"></time>
+                                <span th:unless="${r.checkIn != null}">Sin registrar</span>
+                            </dd>
+                            <dt>Salida real</dt>
+                            <dd>
+                                <time th:if="${r.checkOut != null}" th:datetime="${r.checkOut}" th:text="${#temporals.format(r.checkOut, 'dd/MM/yyyy HH:mm:ss')}"></time>
+                                <span th:unless="${r.checkOut != null}">Sin registrar</span>
+                            </dd>
+                        </dl>
+                        <p class="text-secondary mb-0" th:if="${r.motivo}" th:text="${r.motivo}"></p>
+                        <form th:if="${r.motivo == null and r.estado.name() == 'CONFIRMADA'}"
+                              method="post" th:action="@{/check-in-check-out/{id}/check-in(id=${r.id})}">
+                            <button class="btn btn-primary" type="submit">Registrar check-in</button>
+                        </form>
+                        <form th:if="${r.motivo == null and r.estado.name() == 'EN_CURSO'}"
+                              method="post" th:action="@{/check-in-check-out/{id}/check-out(id=${r.id})}">
+                            <button class="btn btn-primary" type="submit">Registrar check-out</button>
+                        </form>
+                    </article>
+                </div>
             </div>
-            <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de entradas y salidas de ejemplo">
-                <table class="table data-table">
-                    <thead><tr><th scope="col">Reservación</th><th scope="col">Huésped</th><th scope="col">Habitación</th><th scope="col">Fecha prevista</th><th scope="col">Estado</th><th scope="col">Acción</th></tr></thead>
-                    <tbody>
-                        <tr><th scope="row">R-0101</th><td>Huésped Alfa</td><td>202</td><td><time datetime="2027-02-12">12 feb 2027</time></td><td><span class="status status-blue">Confirmada</span></td>
-                            <td><button class="btn btn-outline-secondary btn-sm" type="button" aria-describedby="nota-recepcion" disabled>Check-in</button></td></tr>
-                        <tr><th scope="row">R-0102</th><td>Huésped Beta</td><td>101</td><td><time datetime="2027-02-13">13 feb 2027</time></td><td><span class="status status-green">En curso</span></td>
-                            <td><button class="btn btn-outline-secondary btn-sm" type="button" aria-describedby="nota-recepcion" disabled>Check-out</button></td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <p id="nota-recepcion" class="table-note">Las acciones estarán disponibles en una próxima etapa.</p>
         </section>
     </main>
 </body>

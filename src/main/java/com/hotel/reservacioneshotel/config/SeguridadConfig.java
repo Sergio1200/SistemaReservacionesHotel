@@ -47,7 +47,8 @@ public class SeguridadConfig {
                                 "/reservaciones/{id}/pagos/{pagoId}/validar").hasRole(RECEPCIONISTA.name())
                         .requestMatchers("/reservaciones", "/reservaciones/**")
                                 .hasAnyRole(HUESPED.name(), RECEPCIONISTA.name())
-                        .requestMatchers("/huespedes", "/huespedes/**", "/pagos", "/check-in-check-out")
+                        .requestMatchers("/huespedes", "/huespedes/**", "/pagos", "/check-in-check-out",
+                                "/check-in-check-out/{id}/check-in", "/check-in-check-out/{id}/check-out")
                                 .hasRole(RECEPCIONISTA.name())
                         .requestMatchers("/habitaciones", "/habitaciones/**", "/tipos-habitacion", "/tipos-habitacion/**")
                                 .hasRole(ADMINISTRADOR.name())

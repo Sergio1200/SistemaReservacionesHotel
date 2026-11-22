@@ -29,9 +29,4 @@ public class VistasController {
     public String acercaDe() {
         return "acerca-de";
     }
-
-    @GetMapping("/check-in-check-out")
-    public String checkInCheckOut() {
-        return "check-in-check-out";
-    }
 }

@@ -6,6 +6,23 @@ El inicio y «Acerca del proyecto» muestran los logotipos de la UAEMéx y del C
 
 La fotografía del vestíbulo se sirve como recurso local. [Fotografía de Neon Wang en Unsplash](https://unsplash.com/photos/modern-hotel-lobby-with-leather-chairs-and-reception-desk-Is2xP3QGb74)
 
+## Capturas de la etapa 10
+
+El flujo se probó en Edge a 1440 y 390 píxeles con MySQL 8.0.46 aislado. Un huésped ficticio creó dos reservaciones y recepción aprobó los pagos simulados. Recepción registró la entrada y salida de la reservación del día. Un segundo envío de la entrada devolvió HTTP 409. El inventario pasó de ocupado a disponible tras la salida. MySQL conservó los pagos y la tarifa original. La pantalla del huésped mostró la reservación finalizada y devolvió HTTP 403 al intentar abrir el módulo de recepción.
+
+| Flujo | Captura |
+| --- | --- |
+| Búsqueda y llegadas confirmadas | [Llegadas pendientes](capturas/etapa-10/llegadas.png) |
+| Entrada registrada y habitación ocupada | [Estancia en curso](capturas/etapa-10/entrada-ocupada.png) |
+| Reenvío de una entrada registrada | [HTTP 409](capturas/etapa-10/entrada-rechazada.png) |
+| Inventario durante la estancia | [Habitación ocupada](capturas/etapa-10/inventario-ocupada.png) |
+| Salida registrada y habitación liberada | [Reservación finalizada](capturas/etapa-10/salida-liberada.png) |
+| Inventario tras la salida | [Habitación disponible](capturas/etapa-10/inventario-liberada.png) |
+| Vista de recepción en celular | [Reservación finalizada a 390 px](capturas/etapa-10/finalizada-390.png) |
+| Acceso con una cuenta de huésped | [HTTP 403](capturas/etapa-10/acceso-denegado.png) |
+
+Las capturas contienen solo datos ficticios y terminan antes del pie académico. La verificación en Edge confirmó también el pie compartido y la carga de los dos logotipos en «Acerca del proyecto».
+
 ## Capturas de la etapa 9
 
 El flujo se verificó en Edge a 1440 y 390 píxeles con una instancia aislada de MySQL 8.0.46. Una reservación ficticia de 850.75 MXN recibió dos pagos aprobados, de 300.00 y 550.75 MXN. Un intento rechazado por 200.00 MXN quedó en el historial y no redujo el saldo. Al cancelar la reservación, se comprobó en MySQL que los tres pagos conservaron su importe, fecha y estado. Las capturas terminan antes del pie académico.

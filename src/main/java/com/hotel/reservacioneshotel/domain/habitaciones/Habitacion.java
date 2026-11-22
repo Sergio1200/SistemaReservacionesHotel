@@ -85,4 +85,12 @@ public class Habitacion {
         this.precioPorNoche = precioPorNoche;
         this.tipoHabitacion = tipoHabitacion;
     }
+
+    public void ocupar() {
+        estadoOperativo = EstadoHabitacion.OCUPADA;
+    }
+
+    public void liberar() {
+        estadoOperativo = EstadoHabitacion.DISPONIBLE;
+    }
 }
